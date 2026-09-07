@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Leaders’ Controls — Buckshaw ROF Cubs Points</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#24104a">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="mountains"></div>
+    <div class="page-decor page-decor-subtle">
+      <div class="moon"></div>
+      <div class="camp-side" aria-hidden="true">
+        <div class="tent"></div>
+        <div class="campfire"></div>
+      </div>
+    </div>
+    <header class="hero">
+      <h1>Buckshaw ROF <span>Cubs Points</span></h1>
+      <div class="subtitle">Leaders’ Controls</div>
+    </header>
+
+    <main class="leader-shell">
+      <section id="loginCard" class="login-card">
+        <h2>Leader sign in</h2>
+        <p class="hint">Use your leader username and password to change the working totals.</p>
+        <form id="loginForm">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="username" required>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button class="btn btn-gold btn-wide" type="submit">Sign in</button>
+        </form>
+        <div class="status-line" id="loginStatus"></div>
+      </section>
+
+      <section id="controlPanel" class="hidden">
+        <div class="toolbar">
+          <span id="signedInAs"></span>
+          <button id="logoutBtn" class="link-btn">Sign out</button>
+        </div>
+        <div class="leader-controls" id="leaderControls"></div>
+        <section class="leader-card publish-box">
+          <button id="publishBtn" class="btn btn-gold btn-wide">Update Totals</button>
+          <p class="hint">Points are saved as you award them. The public projector screen does not change until you press <strong>Update Totals</strong>.</p>
+          <p class="hint" id="publishStatus"></p>
+        </section>
+
+        <section id="adminPanel" class="leader-card admin-panel hidden">
+          <div class="admin-heading">
+            <div>
+              <div class="eyebrow">Administrator</div>
+              <h2>User management</h2>
+            </div>
+          </div>
+
+          <form id="addUserForm" class="admin-form">
+            <h3>Add a leader</h3>
+            <div class="form-grid">
+              <label>Username
+                <input name="username" autocomplete="off" required minlength="2" maxlength="32">
+              </label>
+              <label>Password
+                <input name="password" type="password" autocomplete="new-password" required minlength="8">
+              </label>
+              <label>Role
+                <select name="role">
+                  <option value="leader">Leader</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </label>
+            </div>
+            <button class="btn btn-gold" type="submit">Add user</button>
+            <p class="hint">Usernames are not case-sensitive. Passwords must be at least 8 characters.</p>
+          </form>
+
+          <div class="user-list-wrap">
+            <h3>Current users</h3>
+            <div id="userList" class="user-list"></div>
+          </div>
+
+          <div class="danger-zone">
+            <h3>Reset points</h3>
+            <p class="hint">Sets both the working totals and the public/projector totals to zero immediately.</p>
+            <button id="resetPointsBtn" class="btn btn-danger" type="button">Reset all points to zero</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script type="module" src="/leader.js"></script>
+</body>
+</html>

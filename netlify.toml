@@ -1,0 +1,49 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/points"
+  to = "/.netlify/functions/points"
+  status = 200
+
+[[redirects]]
+  from = "/api/login"
+  to = "/.netlify/functions/login"
+  status = 200
+
+[[redirects]]
+  from = "/api/leader-state"
+  to = "/.netlify/functions/leader-state"
+  status = 200
+
+[[redirects]]
+  from = "/api/adjust"
+  to = "/.netlify/functions/adjust"
+  status = 200
+
+[[redirects]]
+  from = "/api/publish"
+  to = "/.netlify/functions/publish"
+  status = 200
+
+[[redirects]]
+  from = "/api/users"
+  to = "/.netlify/functions/users"
+  status = 200
+
+[[redirects]]
+  from = "/api/reset-points"
+  to = "/.netlify/functions/reset-points"
+  status = 200
+
+[[headers]]
+  for = "/leader.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"
