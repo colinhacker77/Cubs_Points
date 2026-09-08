@@ -16,19 +16,22 @@ function render(points) {
     value: Number(points[key] || 0)
   }));
 
-  const max = Math.max(1, ...values.map(item => item.value));
+  const max = Math.max(1, ...values.map((item) => item.value));
 
-  bars.replaceChildren(...values.map(item => {
+  bars.replaceChildren(...values.map((item) => {
     const row = document.createElement('article');
     row.className = 'weekly-row';
     row.style.setProperty('--six-color', item.color);
+
+    const width = Math.max(16, (item.value / max) * 100);
     row.innerHTML = `
       <div class="weekly-row-top">
         <span class="weekly-six-name">${item.label}</span>
-        <span class="weekly-score">${item.value}</span>
       </div>
       <div class="weekly-track" role="img" aria-label="${item.label} Six: ${item.value} points">
-        <div class="weekly-fill" style="width:${(item.value / max) * 100}%"></div>
+        <div class="weekly-fill" style="width:${width}%">
+          <span class="weekly-bar-score">${item.value} pts</span>
+        </div>
       </div>`;
     return row;
   }));
