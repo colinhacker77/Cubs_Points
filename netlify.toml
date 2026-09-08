@@ -53,8 +53,3 @@
   for = "/api/*"
   [headers.values]
     Cache-Control = "no-store"
-
-[[redirects]]
-  from = "/weekly"
-  to = "/weekly.html"
-  status = 200
