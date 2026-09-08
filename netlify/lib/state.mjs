@@ -17,12 +17,13 @@ function blankTerm() {
     publishedAt: null,
     lastWeeklyPointsAt: null,
     lastWeeklyPointsBy: null,
-    lastWeeklyPointsDay: null
+    lastWeeklyPointsDay: null,
+    undoHistory: []
   };
 }
 
 export const initialState = () => ({
-  version: 3,
+  version: 4,
   currentTerm: 'autumn',
   terms: {
     autumn: blankTerm(),
@@ -53,7 +54,8 @@ function normaliseTerm(term = {}) {
     publishedAt: term.publishedAt || null,
     lastWeeklyPointsAt: term.lastWeeklyPointsAt || null,
     lastWeeklyPointsBy: term.lastWeeklyPointsBy || null,
-    lastWeeklyPointsDay: term.lastWeeklyPointsDay || null
+    lastWeeklyPointsDay: term.lastWeeklyPointsDay || null,
+    undoHistory: Array.isArray(term.undoHistory) ? term.undoHistory.slice(-20) : []
   };
 }
 
@@ -83,7 +85,7 @@ function normaliseState(existing) {
   return {
     ...initialState(),
     ...existing,
-    version: 3,
+    version: 4,
     currentTerm,
     terms: Object.fromEntries(TERMS.map((term) => [term, normaliseTerm(existing.terms?.[term])]))
   };
@@ -93,7 +95,7 @@ export async function getState() {
   const s = getPersistentStore(STORE_NAME);
   const existing = await s.get(STATE_KEY, { type: 'json' });
   const state = normaliseState(existing);
-  if (!existing || !existing.terms || existing.version !== 3) {
+  if (!existing || !existing.terms || existing.version !== 4) {
     await s.setJSON(STATE_KEY, state);
   }
   return state;
@@ -107,6 +109,56 @@ export async function mutateState(mutator) {
   next.updatedAt = new Date().toISOString();
   await s.setJSON(STATE_KEY, next);
   return next;
+}
+
+function snapshotTerm(term) {
+  return {
+    working: cleanPoints(term.working),
+    published: cleanPoints(term.published),
+    publishedAt: term.publishedAt || null,
+    lastWeeklyPointsAt: term.lastWeeklyPointsAt || null,
+    lastWeeklyPointsBy: term.lastWeeklyPointsBy || null,
+    lastWeeklyPointsDay: term.lastWeeklyPointsDay || null
+  };
+}
+
+export function recordUndo(state, { summary, changedBy, changedAt = new Date().toISOString() }) {
+  const term = currentTermData(state);
+  const entry = {
+    summary,
+    changedBy: changedBy || null,
+    changedAt,
+    snapshot: snapshotTerm(term)
+  };
+  term.undoHistory = [...(Array.isArray(term.undoHistory) ? term.undoHistory : []), entry].slice(-20);
+  return entry;
+}
+
+export function undoLastChange(state) {
+  const term = currentTermData(state);
+  const history = Array.isArray(term.undoHistory) ? [...term.undoHistory] : [];
+  const entry = history.pop();
+  if (!entry?.snapshot) return null;
+
+  const restored = snapshotTerm(entry.snapshot);
+  term.working = restored.working;
+  term.published = restored.published;
+  term.publishedAt = restored.publishedAt;
+  term.lastWeeklyPointsAt = restored.lastWeeklyPointsAt;
+  term.lastWeeklyPointsBy = restored.lastWeeklyPointsBy;
+  term.lastWeeklyPointsDay = restored.lastWeeklyPointsDay;
+  term.undoHistory = history;
+  return entry;
+}
+
+function undoSummary(term) {
+  const last = Array.isArray(term.undoHistory) ? term.undoHistory.at(-1) : null;
+  if (!last) return null;
+  return {
+    summary: last.summary || 'Previous points change',
+    changedBy: last.changedBy || null,
+    changedAt: last.changedAt || null
+  };
 }
 
 export function currentTermData(state) {
@@ -161,6 +213,8 @@ export function leaderState(state) {
     lastWeeklyPointsAt: current.lastWeeklyPointsAt,
     lastWeeklyPointsBy: current.lastWeeklyPointsBy,
     lastWeeklyPointsDay: current.lastWeeklyPointsDay,
+    lastUndoableChange: undoSummary(current),
+    canUndo: Boolean(current.undoHistory?.length),
     lastTermChangedBy: state.lastTermChangedBy,
     lastTermChangedAt: state.lastTermChangedAt,
     annualRevealEnabled: Boolean(state.annualRevealEnabled),

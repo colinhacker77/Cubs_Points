@@ -1,5 +1,5 @@
 import { requireUser } from '../lib/auth.mjs';
-import { getState, mutateState, SIXES, leaderState, currentTermData } from '../lib/state.mjs';
+import { getState, mutateState, SIXES, leaderState, currentTermData, recordUndo } from '../lib/state.mjs';
 
 function londonDay(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -24,6 +24,11 @@ export default async (req) => {
     const now = new Date().toISOString();
     const state = await mutateState((next) => {
       const term = currentTermData(next);
+      recordUndo(next, {
+        summary: 'Added 10 weekly points to every Six',
+        changedBy: user.username,
+        changedAt: now
+      });
       for (const six of SIXES) term.working[six] = Number(term.working[six] || 0) + 10;
       term.lastWeeklyPointsAt = now;
       term.lastWeeklyPointsBy = user.username;

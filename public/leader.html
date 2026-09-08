@@ -53,6 +53,11 @@
           <p class="hint weekly-points-status" id="weeklyPointsStatus">Weekly points have not been added yet.</p>
         </section>
 
+        <section class="leader-card undo-points-box">
+          <button id="undoBtn" class="btn btn-undo btn-wide" type="button" disabled>Undo last change</button>
+          <p class="hint" id="undoStatus">There are no point changes to undo in this term.</p>
+        </section>
+
         <div class="leader-controls" id="leaderControls"></div>
         <section class="leader-card publish-box">
           <button id="publishBtn" class="btn btn-gold btn-wide">Update Totals</button>
@@ -163,6 +168,8 @@
         <h3>Adding and changing points</h3>
         <p>Use <strong>+</strong> and <strong>−</strong> to change a Six by one point.</p>
         <p>To enter a total directly, tap the number in the middle, type the new total and press <strong>✓</strong>.</p>
+        <p>If somebody makes a mistake, press <strong>Undo last change</strong>. The message below the button tells you exactly which change will be reversed, who made it and when. You can press Undo more than once to step back through earlier point changes in the current term.</p>
+        <p>Undo is shared between all leaders, so check the description before using it. It restores the leader totals immediately. If the incorrect total had already been published, press <strong>Update Totals</strong> afterwards to correct the projector and parent page.</p>
         <p>Changes are saved immediately to the leader view, but are not shown on the projector or parent page until you publish them.</p>
       </section>
 
@@ -188,7 +195,7 @@
 
       <section class="help-section help-warning">
         <h3>Important</h3>
-        <p><strong>Clear current term points</strong> permanently resets that term to zero and also removes those points from the yearly total. Use it only when you genuinely want to erase that term.</p>
+        <p><strong>Clear current term points</strong> resets that term to zero and removes those points from the yearly total. If it is pressed by mistake, use <strong>Undo last change</strong> before making further point changes.</p>
       </section>
 
       <div class="dialog-actions">

@@ -1918,3 +1918,31 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
     padding: 12px 13px;
   }
 }
+
+
+/* v24 shared undo control */
+.undo-points-box {
+  display: grid;
+  gap: 8px;
+}
+
+.btn-undo {
+  color: var(--cream);
+  border: 1px solid rgba(255, 217, 120, .34);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.055));
+  font-family: inherit;
+}
+
+.btn-undo:not(:disabled):hover {
+  border-color: rgba(255, 217, 120, .65);
+  background: linear-gradient(180deg, rgba(217,154,45,.18), rgba(255,255,255,.065));
+}
+
+.btn-undo:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.undo-points-box .hint {
+  margin: 0;
+}

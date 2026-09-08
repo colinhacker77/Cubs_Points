@@ -1,5 +1,5 @@
 import { requireAdmin } from '../lib/auth.mjs';
-import { mutateState, leaderState, currentTermData, zeroPoints } from '../lib/state.mjs';
+import { mutateState, leaderState, currentTermData, zeroPoints, recordUndo, TERM_LABELS } from '../lib/state.mjs';
 
 export default async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
@@ -10,6 +10,11 @@ export default async (req) => {
     const now = new Date().toISOString();
     const state = await mutateState((next) => {
       const term = currentTermData(next);
+      recordUndo(next, {
+        summary: `Cleared ${TERM_LABELS[next.currentTerm]} term points`,
+        changedBy: admin.username,
+        changedAt: now
+      });
       term.working = zeroPoints();
       term.published = zeroPoints();
       term.publishedAt = now;

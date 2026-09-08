@@ -33,6 +33,12 @@
   to = "/.netlify/functions/add-weekly-points"
   status = 200
 
+
+[[redirects]]
+  from = "/api/undo"
+  to = "/.netlify/functions/undo"
+  status = 200
+
 [[redirects]]
   from = "/api/publish"
   to = "/.netlify/functions/publish"

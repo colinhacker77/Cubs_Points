@@ -40,6 +40,8 @@ const setTermBtn = document.getElementById('setTermBtn');
 const termStatus = document.getElementById('termStatus');
 const weeklyPointsBtn = document.getElementById('weeklyPointsBtn');
 const weeklyPointsStatus = document.getElementById('weeklyPointsStatus');
+const undoBtn = document.getElementById('undoBtn');
+const undoStatus = document.getElementById('undoStatus');
 const annualRevealYear = document.getElementById('annualRevealYear');
 const annualRevealSelect = document.getElementById('annualRevealSelect');
 const saveAnnualRevealBtn = document.getElementById('saveAnnualRevealBtn');
@@ -91,6 +93,31 @@ function updateWeeklyPointsUI(state) {
   } else {
     weeklyPointsStatus.textContent = 'Weekly points have not been added yet.';
   }
+}
+
+function updateUndoUI(state) {
+  const last = state.lastUndoableChange;
+  undoBtn.disabled = !state.canUndo || !last;
+
+  if (!last) {
+    undoStatus.textContent = `There are no point changes to undo in the ${state.currentTermLabel || currentTermName} term.`;
+    undoBtn.dataset.summary = '';
+    return;
+  }
+
+  const when = last.changedAt
+    ? new Date(last.changedAt).toLocaleString('en-GB', {
+        timeZone: 'Europe/London',
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : '';
+  const who = last.changedBy ? ` by ${last.changedBy}` : '';
+  undoStatus.textContent = `Will undo: ${last.summary}${who}${when ? ` · ${when}` : ''}.`;
+  undoBtn.dataset.summary = last.summary || 'the last points change';
 }
 
 function renderControls() {
@@ -205,6 +232,7 @@ async function loadState() {
   if (annualRevealSelect) annualRevealSelect.value = data.annualRevealEnabled ? 'on' : 'off';
   if (annualRevealStatus) annualRevealStatus.textContent = data.annualRevealChangedAt ? `Last changed ${new Date(data.annualRevealChangedAt).toLocaleString('en-GB')} by ${data.annualRevealChangedBy || 'admin'}` : 'Annual winner reveal is currently disabled.';
   updateWeeklyPointsUI(data);
+  updateUndoUI(data);
   publishStatus.textContent = data.publishedAt
     ? `Last public update: ${new Date(data.publishedAt).toLocaleString('en-GB')}`
     : 'No totals have been published yet.';
@@ -249,6 +277,7 @@ leaderControls.addEventListener('click', async (event) => {
       });
       working = data.working;
       syncWorkingValues();
+      updateUndoUI(data);
     } catch (err) {
       notify(err.message);
     } finally {
@@ -296,6 +325,7 @@ leaderControls.addEventListener('submit', async (event) => {
     });
     working = data.working;
     syncWorkingValues();
+    updateUndoUI(data);
     closeManualEntry(six);
     notify(`${SIXES[six].label} total updated`);
   } catch (err) {
@@ -333,6 +363,7 @@ weeklyPointsBtn.addEventListener('click', async () => {
     });
 
     updateWeeklyPointsUI(data);
+    updateUndoUI(data);
     notify('10 points added to every Six');
   } catch (err) {
     notify(err.message);
@@ -341,10 +372,44 @@ weeklyPointsBtn.addEventListener('click', async () => {
       working = { ...state.working };
       renderControls();
       updateWeeklyPointsUI(state);
+      updateUndoUI(state);
     } catch {
       weeklyPointsBtn.disabled = false;
       weeklyPointsBtn.textContent = 'Add weekly points';
     }
+  }
+});
+
+undoBtn.addEventListener('click', async () => {
+  if (undoBtn.disabled) return;
+  const summary = undoBtn.dataset.summary || 'the last points change';
+  if (!confirm(`Undo ${summary}?`)) return;
+
+  undoBtn.disabled = true;
+  const originalText = undoBtn.textContent;
+  undoBtn.textContent = 'Undoing…';
+
+  try {
+    const data = await apiJson('/api/undo', { method: 'POST', headers: authHeaders() });
+    working = { ...data.working };
+    renderControls();
+    updateWeeklyPointsUI(data);
+    updateUndoUI(data);
+    const undoneSummary = data.undone?.summary || 'Last points change';
+    notify(`${undoneSummary} undone`);
+  } catch (err) {
+    notify(err.message);
+    try {
+      const state = await apiJson('/api/leader-state', { headers: authHeaders(), cache: 'no-store' });
+      working = { ...state.working };
+      renderControls();
+      updateWeeklyPointsUI(state);
+      updateUndoUI(state);
+    } catch {
+      // Session expiry or a transient failure is handled elsewhere.
+    }
+  } finally {
+    undoBtn.textContent = originalText;
   }
 });
 
@@ -534,12 +599,14 @@ editUserForm.addEventListener('submit', async (event) => {
 
 resetPointsBtn.addEventListener('click', async () => {
   if (!confirm(`Clear all ${currentTermName} term points? This will also clear that term from the projector and yearly total.`)) return;
-  if (!confirm('This cannot be undone. Are you sure?')) return;
+  if (!confirm('Are you sure? You can use Undo last change if this was done accidentally.')) return;
   resetPointsBtn.disabled = true;
   try {
     const data = await apiJson('/api/reset-points', { method: 'POST', headers: authHeaders() });
     working = data.working;
     renderControls();
+    updateWeeklyPointsUI(data);
+    updateUndoUI(data);
     publishStatus.textContent = `${data.currentTermLabel || currentTermName} cleared ${new Date(data.lastResetAt).toLocaleString('en-GB')}`;
     notify(`${data.currentTermLabel || currentTermName} points cleared`);
   } catch (err) {
@@ -553,7 +620,11 @@ async function refreshWeeklyPointsStatus() {
   if (!token || controlPanel.classList.contains('hidden')) return;
   try {
     const data = await apiJson('/api/leader-state', { headers: authHeaders(), cache: 'no-store' });
+    const changed = Object.keys(SIXES).some((six) => Number(working[six]) !== Number(data.working[six]));
+    working = { ...data.working };
+    if (changed) syncWorkingValues();
     updateWeeklyPointsUI(data);
+    updateUndoUI(data);
   } catch {
     // Session expiry is already handled by apiJson. Ignore transient polling errors.
   }
@@ -582,6 +653,7 @@ setTermBtn?.addEventListener('click', async () => {
     termSelect.value = currentTerm;
     termStatus.textContent = `Changed ${new Date(data.lastTermChangedAt).toLocaleString('en-GB')} by ${data.lastTermChangedBy}`;
     updateWeeklyPointsUI(data);
+    updateUndoUI(data);
     publishStatus.textContent = data.publishedAt
       ? `Last ${currentTermName} public update: ${new Date(data.publishedAt).toLocaleString('en-GB')}`
       : `No ${currentTermName} totals have been published yet.`;
