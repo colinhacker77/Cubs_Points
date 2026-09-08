@@ -15,6 +15,8 @@ const publishStatus = document.getElementById('publishStatus');
 const signedInAs = document.getElementById('signedInAs');
 const logoutBtn = document.getElementById('logoutBtn');
 const toast = document.getElementById('toast');
+const helpBtn = document.getElementById('helpBtn');
+const helpDialog = document.getElementById('helpDialog');
 const adminPanel = document.getElementById('adminPanel');
 const pointsManagementTab = document.getElementById('pointsManagementTab');
 const userManagementTab = document.getElementById('userManagementTab');
@@ -391,11 +393,13 @@ document.querySelectorAll('[data-close-dialog]').forEach((button) => {
   button.addEventListener('click', () => closeDialog(document.getElementById(button.dataset.closeDialog)));
 });
 
-[addUserDialog, editUserDialog].forEach((dialog) => {
+[helpDialog, addUserDialog, editUserDialog].forEach((dialog) => {
   dialog?.addEventListener('click', (event) => {
     if (event.target === dialog) closeDialog(dialog);
   });
 });
+
+helpBtn?.addEventListener('click', () => openDialog(helpDialog));
 
 openAddUserDialogBtn?.addEventListener('click', () => {
   addUserForm.reset();

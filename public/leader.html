@@ -24,6 +24,10 @@
     </header>
 
     <main class="leader-shell">
+      <div class="leader-top-actions">
+        <button id="helpBtn" class="btn btn-help" type="button" aria-haspopup="dialog" aria-controls="helpDialog">Help</button>
+      </div>
+
       <section id="loginCard" class="login-card">
         <h2>Leader sign in</h2>
         <p class="hint">Use your leader username and password to change the working totals.</p>
@@ -137,6 +141,61 @@
       </section>
     </main>
   </div>
+
+
+  <dialog id="helpDialog" class="admin-dialog help-dialog">
+    <div class="admin-dialog-form help-dialog-content">
+      <div class="dialog-heading">
+        <div>
+          <div class="eyebrow">Leader guide</div>
+          <h2>Using Cubs Points</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="helpDialog" aria-label="Close help">×</button>
+      </div>
+
+      <section class="help-section">
+        <h3>At the start of the meeting</h3>
+        <p>Sign in and check that the correct term is shown at the top of the page.</p>
+        <p>Press <strong>Add weekly points</strong> once to give every Six its standard 10 starting points. Once this has been done that day, the button is disabled for everyone.</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Adding and changing points</h3>
+        <p>Use <strong>+</strong> and <strong>−</strong> to change a Six by one point.</p>
+        <p>To enter a total directly, tap the number in the middle, type the new total and press <strong>✓</strong>.</p>
+        <p>Changes are saved immediately to the leader view, but are not shown on the projector or parent page until you publish them.</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Publishing the scores</h3>
+        <p>Press <strong>Update Totals</strong> when you are ready for the projector and weekly parent page to show the latest scores.</p>
+        <p>The projector page will animate the published term totals. The leading Six receives the celebration effect after all totals have been revealed.</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Terms and yearly totals</h3>
+        <p>Points are stored separately for <strong>Autumn</strong>, <strong>Spring</strong> and <strong>Summer</strong>. The current term is selected by an administrator.</p>
+        <p>At the end of a term, switch to the next term rather than clearing the old one. Previous term totals remain part of the running yearly score.</p>
+        <p>The projector page can show either the current term or the total for the year.</p>
+      </section>
+
+      <section class="help-section help-admin-section">
+        <h3>Administrator controls</h3>
+        <p><strong>Points management</strong> is used to select the current term, control the final yearly winner reveal and clear the current term if needed.</p>
+        <p><strong>User management</strong> is used to add, edit or remove leader accounts.</p>
+        <p>Only enable the final yearly winner reveal for the last meeting, when you are ready to announce the overall winning Six.</p>
+      </section>
+
+      <section class="help-section help-warning">
+        <h3>Important</h3>
+        <p><strong>Clear current term points</strong> permanently resets that term to zero and also removes those points from the yearly total. Use it only when you genuinely want to erase that term.</p>
+      </section>
+
+      <div class="dialog-actions">
+        <button class="btn btn-gold" type="button" data-close-dialog="helpDialog">Close help</button>
+      </div>
+    </div>
+  </dialog>
 
   <dialog id="addUserDialog" class="admin-dialog">
     <form id="addUserForm" method="dialog" class="admin-dialog-form">
