@@ -34,7 +34,8 @@ function makeTube(name, value) {
   tube.setAttribute('aria-label', `${c.label} Six: ${value} points`);
 
   const badge = document.createElement('div');
-  badge.className = 'score-badge';
+  badge.className = 'score-badge score-badge-hidden';
+  badge.dataset.badge = name;
   badge.innerHTML = `<strong>${value}</strong><small>POINTS</small>`;
 
   const tubeWindow = document.createElement('div');
@@ -96,6 +97,14 @@ function createMarble(name, index, size, position, holderHeight) {
   return marble;
 }
 
+function revealBadge(name) {
+  const badge = tubes.querySelector(`[data-badge="${name}"]`);
+  if (badge) {
+    badge.classList.remove('score-badge-hidden');
+    badge.classList.add('score-badge-reveal');
+  }
+}
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -105,11 +114,14 @@ async function pourTube(name, value, generation) {
   if (!holder) return;
 
   const visible = Math.min(value, 180);
-  if (visible <= 0) return;
+  if (visible <= 0) {
+    revealBadge(name);
+    return;
+  }
 
   const size = marbleSize(value);
   const positions = buildPositions(holder, visible, size);
-  const interval = Math.max(40, Math.min(95, 6000 / visible));
+  const interval = Math.max(28, Math.min(60, 4200 / visible));
   const holderHeight = holder.clientHeight;
 
   for (let i = 0; i < visible; i++) {
@@ -118,12 +130,16 @@ async function pourTube(name, value, generation) {
     const marble = createMarble(name, i, size, positions[i], holderHeight);
     holder.appendChild(marble);
 
-    const jitter = (i % 4) * 6;
+    const jitter = (i % 4) * 4;
     await wait(interval + jitter);
   }
+
+  await wait(950);
+  if (generation !== pourGeneration || !holder.isConnected) return;
+  revealBadge(name);
 }
 
-function render(points) {
+async function render(points) {
   pourGeneration += 1;
   const generation = pourGeneration;
 
@@ -131,11 +147,13 @@ function render(points) {
     ...Object.keys(config).map((name) => makeTube(name, Number(points[name] || 0)))
   );
 
-  requestAnimationFrame(() => {
-    for (const name of Object.keys(config)) {
-      void pourTube(name, Number(points[name] || 0), generation);
-    }
-  });
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+
+  for (const name of Object.keys(config)) {
+    if (generation !== pourGeneration) return;
+    await pourTube(name, Number(points[name] || 0), generation);
+    await wait(140);
+  }
 }
 
 async function load() {
@@ -145,7 +163,7 @@ async function load() {
     const data = await res.json();
     const payload = JSON.stringify(data.points);
     if (payload !== lastPayload) {
-      render(data.points);
+      void render(data.points);
       lastPayload = payload;
     }
     status.textContent = data.publishedAt
