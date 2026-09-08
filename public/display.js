@@ -18,6 +18,12 @@ function marbleSize(value) {
   return 20;
 }
 
+function marbleGap(size) {
+  if (size <= 10) return 2;
+  if (size <= 12) return 3;
+  return 4;
+}
+
 function makeTube(name, value) {
   const c = config[name];
   const unit = document.createElement('div');
@@ -37,6 +43,7 @@ function makeTube(name, value) {
   const marbles = document.createElement('div');
   marbles.className = 'marbles';
   marbles.dataset.six = name;
+  marbles.dataset.value = String(value);
   marbles.style.setProperty('--marble-size', `${marbleSize(value)}px`);
 
   tubeWindow.append(marbles);
@@ -50,19 +57,47 @@ function makeTube(name, value) {
   return unit;
 }
 
-function createMarble(name, index) {
+function buildPositions(holder, count, size) {
+  const gap = marbleGap(size);
+  const width = holder.clientWidth;
+  const cols = Math.max(1, Math.floor((width + gap) / (size + gap)));
+  const positions = [];
+
+  for (let i = 0; i < count; i++) {
+    const row = Math.floor(i / cols);
+    const rowStart = row * cols;
+    const rowCount = Math.min(cols, count - rowStart);
+    const colInRow = i - rowStart;
+    const rowWidth = rowCount * size + (rowCount - 1) * gap;
+    const leftOffset = Math.max(0, Math.floor((width - rowWidth) / 2));
+
+    positions.push({
+      left: leftOffset + colInRow * (size + gap),
+      bottom: row * (size + gap)
+    });
+  }
+
+  return positions;
+}
+
+function createMarble(name, index, size, position, holderHeight) {
   const c = config[name];
   const marble = document.createElement('span');
   marble.className = 'marble marble-enter';
   marble.style.setProperty('--color', c.color);
   marble.style.setProperty('--light', c.light);
   marble.style.setProperty('--dark', c.dark);
-  marble.style.setProperty('--pour-x', `${((index % 5) - 2) * 6}px`);
+  marble.style.setProperty('--pour-x', `${((index % 5) - 2) * Math.max(3, Math.round(size * 0.35))}px`);
+  marble.style.setProperty('--drop-height', `${Math.max(holderHeight - position.bottom + 70, 140)}px`);
+  marble.style.width = `${size}px`;
+  marble.style.height = `${size}px`;
+  marble.style.left = `${position.left}px`;
+  marble.style.bottom = `${position.bottom}px`;
   return marble;
 }
 
 function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function pourTube(name, value, generation) {
@@ -72,17 +107,18 @@ async function pourTube(name, value, generation) {
   const visible = Math.min(value, 180);
   if (visible <= 0) return;
 
-  // Keep the whole pour theatrical, but avoid a 25-second animation on very high totals.
-  // Typical Cub totals of 40–90 points pour at roughly one ball every 130–150ms.
-  const interval = Math.max(70, Math.min(150, 12000 / visible));
+  const size = marbleSize(value);
+  const positions = buildPositions(holder, visible, size);
+  const interval = Math.max(40, Math.min(95, 6000 / visible));
+  const holderHeight = holder.clientHeight;
 
   for (let i = 0; i < visible; i++) {
     if (generation !== pourGeneration || !holder.isConnected) return;
 
-    holder.appendChild(createMarble(name, i));
+    const marble = createMarble(name, i, size, positions[i], holderHeight);
+    holder.appendChild(marble);
 
-    // Tiny irregularity makes the stream feel hand-poured rather than metronomic.
-    const jitter = (i % 4) * 7;
+    const jitter = (i % 4) * 6;
     await wait(interval + jitter);
   }
 }
@@ -92,14 +128,14 @@ function render(points) {
   const generation = pourGeneration;
 
   tubes.replaceChildren(
-    ...Object.keys(config).map(name => makeTube(name, Number(points[name] || 0)))
+    ...Object.keys(config).map((name) => makeTube(name, Number(points[name] || 0)))
   );
 
-  // Start all four tubes together, but add every ball as a separate DOM event.
-  // This guarantees a visible stream instead of relying on CSS animation delays.
-  for (const name of Object.keys(config)) {
-    void pourTube(name, Number(points[name] || 0), generation);
-  }
+  requestAnimationFrame(() => {
+    for (const name of Object.keys(config)) {
+      void pourTube(name, Number(points[name] || 0), generation);
+    }
+  });
 }
 
 async function load() {

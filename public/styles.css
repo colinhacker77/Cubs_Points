@@ -944,3 +944,57 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
     transform: none;
   }
 }
+
+
+/* v12 stacked pour refinements */
+.marbles {
+  display: block !important;
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 116px;
+  bottom: 8px;
+  overflow: hidden;
+}
+
+.marble {
+  position: absolute;
+  margin: 0;
+  transform: translateX(var(--pour-x, 0px)) translateY(calc(-1 * var(--drop-height, 320px))) scale(.88);
+  animation: marble-stack-pour .88s cubic-bezier(.2,.9,.28,1.12) forwards;
+  transform-origin: center center;
+}
+
+@keyframes marble-stack-pour {
+  0% {
+    opacity: 0;
+    transform: translateX(var(--pour-x, 0px)) translateY(calc(-1 * var(--drop-height, 320px))) scale(.88);
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(calc(var(--pour-x, 0px) * .28)) translateY(12px) scale(1.03);
+  }
+  84% {
+    transform: translateX(calc(var(--pour-x, 0px) * .12)) translateY(-5px) scale(.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 700px) {
+  .marbles {
+    top: 92px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marble {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
