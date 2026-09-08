@@ -19,6 +19,8 @@ const adminPanel = document.getElementById('adminPanel');
 const addUserForm = document.getElementById('addUserForm');
 const userList = document.getElementById('userList');
 const resetPointsBtn = document.getElementById('resetPointsBtn');
+const weeklyPointsBtn = document.getElementById('weeklyPointsBtn');
+const weeklyPointsStatus = document.getElementById('weeklyPointsStatus');
 
 let token = sessionStorage.getItem('cubLeaderToken') || '';
 let username = sessionStorage.getItem('cubLeaderUser') || '';
@@ -34,6 +36,36 @@ function notify(message) {
   toast.classList.add('show');
   clearTimeout(notify.timer);
   notify.timer = setTimeout(() => toast.classList.remove('show'), 1900);
+}
+
+function londonDay(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date);
+}
+
+function updateWeeklyPointsUI(state) {
+  const usedToday = state.lastWeeklyPointsDay === londonDay();
+  weeklyPointsBtn.disabled = usedToday;
+  weeklyPointsBtn.textContent = usedToday ? 'Weekly points added' : 'Add weekly points';
+
+  if (state.lastWeeklyPointsAt) {
+    const when = new Date(state.lastWeeklyPointsAt).toLocaleString('en-GB', {
+      timeZone: 'Europe/London',
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const who = state.lastWeeklyPointsBy ? ` by ${state.lastWeeklyPointsBy}` : '';
+    weeklyPointsStatus.textContent = `Last added ${when}${who}.`;
+  } else {
+    weeklyPointsStatus.textContent = 'Weekly points have not been added yet.';
+  }
 }
 
 function renderControls() {
@@ -138,6 +170,7 @@ async function loadState() {
   sessionStorage.setItem('cubLeaderRole', role);
   renderControls();
   showControls();
+  updateWeeklyPointsUI(data);
   publishStatus.textContent = data.publishedAt
     ? `Last public update: ${new Date(data.publishedAt).toLocaleString('en-GB')}`
     : 'No totals have been published yet.';
@@ -241,6 +274,33 @@ leaderControls.addEventListener('submit', async (event) => {
   }
   input.disabled = false;
   buttons.forEach((button) => button.disabled = false);
+});
+
+weeklyPointsBtn.addEventListener('click', async () => {
+  if (weeklyPointsBtn.disabled) return;
+  if (!confirm('Add 10 points to every Six? This can only be done once today.')) return;
+
+  weeklyPointsBtn.disabled = true;
+  weeklyPointsBtn.textContent = 'Adding…';
+  try {
+    const data = await apiJson('/api/add-weekly-points', {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    working = data.working;
+    syncWorkingValues();
+    updateWeeklyPointsUI(data);
+    notify('10 points added to every Six');
+  } catch (err) {
+    notify(err.message);
+    try {
+      const state = await apiJson('/api/leader-state', { headers: authHeaders(), cache: 'no-store' });
+      updateWeeklyPointsUI(state);
+    } catch {
+      weeklyPointsBtn.disabled = false;
+      weeklyPointsBtn.textContent = 'Add weekly points';
+    }
+  }
 });
 
 publishBtn.addEventListener('click', async () => {
@@ -378,6 +438,19 @@ resetPointsBtn.addEventListener('click', async () => {
     resetPointsBtn.disabled = false;
   }
 });
+
+async function refreshWeeklyPointsStatus() {
+  if (!token || controlPanel.classList.contains('hidden')) return;
+  try {
+    const data = await apiJson('/api/leader-state', { headers: authHeaders(), cache: 'no-store' });
+    updateWeeklyPointsUI(data);
+  } catch {
+    // Session expiry is already handled by apiJson. Ignore transient polling errors.
+  }
+}
+
+setInterval(refreshWeeklyPointsStatus, 4000);
+window.addEventListener('focus', refreshWeeklyPointsStatus);
 
 logoutBtn.addEventListener('click', logout);
 

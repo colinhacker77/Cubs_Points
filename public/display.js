@@ -109,6 +109,43 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function celebrateWinners(points, generation) {
+  if (generation !== pourGeneration) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const values = Object.entries(config).map(([name]) => [name, Number(points[name] || 0)]);
+  const high = Math.max(...values.map(([, value]) => value));
+  if (high <= 0) return;
+
+  const winners = values.filter(([, value]) => value === high).map(([name]) => name);
+  for (const name of winners) {
+    const unit = tubes.querySelector(`.tube-unit.${name}`);
+    if (!unit) continue;
+
+    const old = unit.querySelector('.winner-confetti');
+    if (old) old.remove();
+
+    const layer = document.createElement('div');
+    layer.className = 'winner-confetti';
+    layer.setAttribute('aria-hidden', 'true');
+
+    const colours = [config[name].color, '#ffd978', '#ffffff', '#ff8fd8', '#7ee7ff'];
+    for (let i = 0; i < 46; i++) {
+      const piece = document.createElement('i');
+      piece.className = i % 5 === 0 ? 'confetti-piece streamer' : 'confetti-piece';
+      piece.style.setProperty('--confetti-color', colours[i % colours.length]);
+      piece.style.setProperty('--confetti-x', `${(Math.random() * 210 - 105).toFixed(1)}px`);
+      piece.style.setProperty('--confetti-y', `${(Math.random() * 70 + 190).toFixed(1)}px`);
+      piece.style.setProperty('--confetti-rotate', `${Math.round(Math.random() * 720 - 360)}deg`);
+      piece.style.setProperty('--confetti-delay', `${(Math.random() * .35).toFixed(2)}s`);
+      layer.appendChild(piece);
+    }
+
+    unit.appendChild(layer);
+    setTimeout(() => layer.remove(), 3600);
+  }
+}
+
 async function pourTube(name, value, generation) {
   const holder = tubes.querySelector(`.marbles[data-six="${name}"]`);
   if (!holder) return;
@@ -154,6 +191,10 @@ async function render(points) {
     await pourTube(name, Number(points[name] || 0), generation);
     await wait(140);
   }
+
+  if (generation !== pourGeneration) return;
+  await wait(220);
+  celebrateWinners(points, generation);
 }
 
 async function load() {

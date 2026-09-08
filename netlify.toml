@@ -29,6 +29,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/add-weekly-points"
+  to = "/.netlify/functions/add-weekly-points"
+  status = 200
+
+[[redirects]]
   from = "/api/publish"
   to = "/.netlify/functions/publish"
   status = 200

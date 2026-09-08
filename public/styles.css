@@ -1184,3 +1184,84 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
     margin-top: 28px;
   }
 }
+
+
+/* v16 weekly points action and winner celebration */
+.weekly-points-box {
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.weekly-points-box .btn {
+  margin-top: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.2rem;
+}
+
+.weekly-points-box .btn:disabled {
+  opacity: .72;
+  filter: saturate(.65);
+  box-shadow: none;
+}
+
+.weekly-points-status {
+  margin-top: 7px;
+  color: #eadfff;
+}
+
+.tube-unit {
+  position: relative;
+}
+
+.winner-confetti {
+  position: absolute;
+  z-index: 30;
+  pointer-events: none;
+  left: 50%;
+  top: 22%;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+}
+
+.confetti-piece {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 9px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--confetti-color);
+  box-shadow: 0 0 4px rgba(255,255,255,.25);
+  opacity: 0;
+  animation: winner-confetti-burst 2.5s cubic-bezier(.15,.72,.28,1) var(--confetti-delay) forwards;
+}
+
+.confetti-piece.streamer {
+  width: 4px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+@keyframes winner-confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(.7);
+  }
+  9% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 1;
+    transform: translate(var(--confetti-x), -75px) rotate(calc(var(--confetti-rotate) * .45)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--confetti-x) * 1.15), var(--confetti-y)) rotate(var(--confetti-rotate)) scale(.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winner-confetti { display: none; }
+}

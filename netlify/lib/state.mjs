@@ -12,7 +12,10 @@ export const initialState = () => ({
   lastChangedBy: null,
   lastPublishedBy: null,
   lastResetBy: null,
-  lastResetAt: null
+  lastResetAt: null,
+  lastWeeklyPointsAt: null,
+  lastWeeklyPointsBy: null,
+  lastWeeklyPointsDay: null
 });
 
 export async function getState() {
@@ -47,6 +50,9 @@ export function leaderState(state) {
     lastChangedBy: state.lastChangedBy,
     lastPublishedBy: state.lastPublishedBy,
     lastResetBy: state.lastResetBy,
-    lastResetAt: state.lastResetAt
+    lastResetAt: state.lastResetAt,
+    lastWeeklyPointsAt: state.lastWeeklyPointsAt || null,
+    lastWeeklyPointsBy: state.lastWeeklyPointsBy || null,
+    lastWeeklyPointsDay: state.lastWeeklyPointsDay || null
   };
 }
