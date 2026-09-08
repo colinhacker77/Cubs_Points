@@ -8,11 +8,21 @@ const config = {
 const tubes = document.getElementById('tubes');
 const status = document.getElementById('status');
 let lastPayload = '';
+let pourGeneration = 0;
+
+function marbleSize(value) {
+  if (value > 140) return 9;
+  if (value > 100) return 10;
+  if (value > 70) return 12;
+  if (value > 40) return 15;
+  return 20;
+}
 
 function makeTube(name, value) {
   const c = config[name];
   const unit = document.createElement('div');
   unit.className = `tube-unit ${name}`;
+
   const tube = document.createElement('div');
   tube.className = 'tube';
   tube.setAttribute('aria-label', `${c.label} Six: ${value} points`);
@@ -26,23 +36,12 @@ function makeTube(name, value) {
 
   const marbles = document.createElement('div');
   marbles.className = 'marbles';
-  const visible = Math.min(value, 180);
-  const size = value > 140 ? 9 : value > 100 ? 10 : value > 70 ? 12 : value > 40 ? 15 : 20;
-  marbles.style.setProperty('--marble-size', `${size}px`);
-  for (let i = 0; i < visible; i++) {
-    const marble = document.createElement('span');
-    marble.className = 'marble';
-    marble.style.setProperty('--color', c.color);
-    marble.style.setProperty('--light', c.light);
-    marble.style.setProperty('--dark', c.dark);
-    const pourDelay = Math.min(i * 0.14 + (i % 3) * 0.02, 14);
-    const pourOffsetX = ((i % 5) - 2) * 7;
-    marble.style.setProperty('--drop-delay', `${pourDelay}s`);
-    marble.style.setProperty('--pour-x', `${pourOffsetX}px`);
-    marbles.appendChild(marble);
-  }
+  marbles.dataset.six = name;
+  marbles.style.setProperty('--marble-size', `${marbleSize(value)}px`);
+
   tubeWindow.append(marbles);
   tube.append(badge, tubeWindow);
+
   const label = document.createElement('div');
   label.className = 'tube-label';
   label.textContent = c.label;
@@ -51,8 +50,56 @@ function makeTube(name, value) {
   return unit;
 }
 
+function createMarble(name, index) {
+  const c = config[name];
+  const marble = document.createElement('span');
+  marble.className = 'marble marble-enter';
+  marble.style.setProperty('--color', c.color);
+  marble.style.setProperty('--light', c.light);
+  marble.style.setProperty('--dark', c.dark);
+  marble.style.setProperty('--pour-x', `${((index % 5) - 2) * 6}px`);
+  return marble;
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function pourTube(name, value, generation) {
+  const holder = tubes.querySelector(`.marbles[data-six="${name}"]`);
+  if (!holder) return;
+
+  const visible = Math.min(value, 180);
+  if (visible <= 0) return;
+
+  // Keep the whole pour theatrical, but avoid a 25-second animation on very high totals.
+  // Typical Cub totals of 40–90 points pour at roughly one ball every 130–150ms.
+  const interval = Math.max(70, Math.min(150, 12000 / visible));
+
+  for (let i = 0; i < visible; i++) {
+    if (generation !== pourGeneration || !holder.isConnected) return;
+
+    holder.appendChild(createMarble(name, i));
+
+    // Tiny irregularity makes the stream feel hand-poured rather than metronomic.
+    const jitter = (i % 4) * 7;
+    await wait(interval + jitter);
+  }
+}
+
 function render(points) {
-  tubes.replaceChildren(...Object.keys(config).map(name => makeTube(name, Number(points[name] || 0))));
+  pourGeneration += 1;
+  const generation = pourGeneration;
+
+  tubes.replaceChildren(
+    ...Object.keys(config).map(name => makeTube(name, Number(points[name] || 0)))
+  );
+
+  // Start all four tubes together, but add every ball as a separate DOM event.
+  // This guarantees a visible stream instead of relying on CSS animation delays.
+  for (const name of Object.keys(config)) {
+    void pourTube(name, Number(points[name] || 0), generation);
+  }
 }
 
 async function load() {
