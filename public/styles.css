@@ -684,3 +684,176 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
   }
   .footer-quote { margin-top: 28px; }
 }
+
+
+/* v8 refinements */
+.tube-window {
+  position: absolute;
+  inset: 12px 12px 12px;
+  border-radius: 24px 24px 16px 16px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.marbles {
+  left: 4px;
+  right: 4px;
+  top: 116px;
+  bottom: 8px;
+  max-height: none;
+  overflow: visible;
+}
+
+.marble {
+  transform: translateY(calc(-1 * min(68vh, 520px))) scale(.92);
+  animation: marble-drop 1.05s cubic-bezier(.21,.9,.27,1.14) forwards;
+}
+
+@keyframes marble-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-1 * min(68vh, 520px))) scale(.92);
+  }
+  22% {
+    opacity: 1;
+  }
+  68% {
+    transform: translateY(16px) scale(1.03);
+  }
+  82% {
+    transform: translateY(-7px) scale(.995);
+  }
+  92% {
+    transform: translateY(3px) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.six-row {
+  grid-template-columns: minmax(0, 1fr) 60px 148px 60px;
+  gap: 10px;
+}
+
+.points-cell {
+  position: relative;
+  width: 148px;
+  min-width: 148px;
+  height: 60px;
+  display: block;
+}
+
+.points-trigger,
+.manual-entry {
+  position: absolute;
+  inset: 0;
+}
+
+.points-trigger {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.manual-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.manual-entry.hidden {
+  display: flex !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.points-trigger.hidden {
+  display: block !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.manual-input {
+  width: 78px;
+  height: 100%;
+  margin: 0;
+  padding: 0 8px;
+  text-align: center;
+  font-size: 1.55rem;
+  font-family: Georgia, serif;
+}
+
+.manual-action {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  align-self: center;
+}
+
+@media (max-width: 700px) {
+  .marbles {
+    top: 92px;
+  }
+
+  .six-row {
+    grid-template-columns: minmax(0, 1fr) 50px 132px 50px;
+    gap: 8px;
+  }
+
+  .points-cell {
+    width: 132px;
+    min-width: 132px;
+    height: 52px;
+  }
+
+  .points-trigger {
+    font-size: 1.85rem;
+  }
+
+  .manual-input {
+    width: 68px;
+    font-size: 1.28rem;
+  }
+
+  .manual-action {
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
+    font-size: .88rem;
+  }
+}
+
+@media (max-width: 450px) {
+  .six-row {
+    grid-template-columns: minmax(0, 1fr) 46px 120px 46px;
+    gap: 6px;
+  }
+
+  .points-cell {
+    width: 120px;
+    min-width: 120px;
+    height: 48px;
+  }
+
+  .points-trigger {
+    font-size: 1.65rem;
+    min-width: 0;
+  }
+
+  .manual-input {
+    width: 60px;
+    font-size: 1.12rem;
+  }
+
+  .manual-action {
+    flex-basis: 24px;
+    width: 24px;
+    height: 24px;
+    font-size: .8rem;
+  }
+}

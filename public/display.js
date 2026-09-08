@@ -21,6 +21,9 @@ function makeTube(name, value) {
   badge.className = 'score-badge';
   badge.innerHTML = `<strong>${value}</strong><small>POINTS</small>`;
 
+  const tubeWindow = document.createElement('div');
+  tubeWindow.className = 'tube-window';
+
   const marbles = document.createElement('div');
   marbles.className = 'marbles';
   const visible = Math.min(value, 180);
@@ -32,10 +35,11 @@ function makeTube(name, value) {
     marble.style.setProperty('--color', c.color);
     marble.style.setProperty('--light', c.light);
     marble.style.setProperty('--dark', c.dark);
-    marble.style.setProperty('--drop-delay', `${Math.min(i * 0.03, 2.4)}s`);
+    marble.style.setProperty('--drop-delay', `${Math.min(i * 0.045, 3.2)}s`);
     marbles.appendChild(marble);
   }
-  tube.append(badge, marbles);
+  tubeWindow.append(marbles);
+  tube.append(badge, tubeWindow);
   const label = document.createElement('div');
   label.className = 'tube-label';
   label.textContent = c.label;
