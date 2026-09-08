@@ -19,6 +19,10 @@ const adminPanel = document.getElementById('adminPanel');
 const addUserForm = document.getElementById('addUserForm');
 const userList = document.getElementById('userList');
 const resetPointsBtn = document.getElementById('resetPointsBtn');
+const currentTermLabel = document.getElementById('currentTermLabel');
+const termSelect = document.getElementById('termSelect');
+const setTermBtn = document.getElementById('setTermBtn');
+const termStatus = document.getElementById('termStatus');
 const weeklyPointsBtn = document.getElementById('weeklyPointsBtn');
 const weeklyPointsStatus = document.getElementById('weeklyPointsStatus');
 
@@ -26,6 +30,8 @@ let token = sessionStorage.getItem('cubLeaderToken') || '';
 let username = sessionStorage.getItem('cubLeaderUser') || '';
 let role = sessionStorage.getItem('cubLeaderRole') || '';
 let working = { red: 0, yellow: 0, purple: 0, blue: 0 };
+let currentTerm = 'autumn';
+let currentTermName = 'Autumn';
 
 function authHeaders(extra = {}) {
   return { Authorization: `Bearer ${token}`, ...extra };
@@ -164,12 +170,17 @@ async function loadState() {
   if (!token) return showLogin();
   const data = await apiJson('/api/leader-state', { headers: authHeaders(), cache: 'no-store' });
   working = data.working;
+  currentTerm = data.currentTerm || 'autumn';
+  currentTermName = data.currentTermLabel || 'Autumn';
   username = data.user || username;
   role = data.role || role;
   sessionStorage.setItem('cubLeaderUser', username);
   sessionStorage.setItem('cubLeaderRole', role);
   renderControls();
   showControls();
+  currentTermLabel.textContent = `Current term: ${currentTermName}`;
+  if (termSelect) termSelect.value = currentTerm;
+  if (termStatus) termStatus.textContent = data.lastTermChangedAt ? `Last changed ${new Date(data.lastTermChangedAt).toLocaleString('en-GB')} by ${data.lastTermChangedBy || 'admin'}` : '';
   updateWeeklyPointsUI(data);
   publishStatus.textContent = data.publishedAt
     ? `Last public update: ${new Date(data.publishedAt).toLocaleString('en-GB')}`
@@ -320,7 +331,7 @@ publishBtn.addEventListener('click', async () => {
   publishBtn.textContent = 'Updating…';
   try {
     const data = await apiJson('/api/publish', { method: 'POST', headers: authHeaders() });
-    publishStatus.textContent = `Updated ${new Date(data.publishedAt).toLocaleString('en-GB')}`;
+    publishStatus.textContent = `${data.currentTermLabel || currentTermName} updated ${new Date(data.publishedAt).toLocaleString('en-GB')}`;
     notify('Public totals updated');
   } catch (err) {
     notify(err.message);
@@ -434,15 +445,15 @@ userList.addEventListener('click', async (event) => {
 });
 
 resetPointsBtn.addEventListener('click', async () => {
-  if (!confirm('Reset ALL sixes to zero? This will also immediately reset the public/projector display.')) return;
-  if (!confirm('This cannot be undone. Are you sure you want to reset all points to zero?')) return;
+  if (!confirm(`Clear all ${currentTermName} term points? This will also clear that term from the projector and yearly total.`)) return;
+  if (!confirm('This cannot be undone. Are you sure?')) return;
   resetPointsBtn.disabled = true;
   try {
     const data = await apiJson('/api/reset-points', { method: 'POST', headers: authHeaders() });
     working = data.working;
     renderControls();
-    publishStatus.textContent = `Reset to zero ${new Date(data.lastResetAt).toLocaleString('en-GB')}`;
-    notify('All points reset to zero');
+    publishStatus.textContent = `${data.currentTermLabel || currentTermName} cleared ${new Date(data.lastResetAt).toLocaleString('en-GB')}`;
+    notify(`${data.currentTermLabel || currentTermName} points cleared`);
   } catch (err) {
     notify(err.message);
   } finally {
@@ -462,6 +473,37 @@ async function refreshWeeklyPointsStatus() {
 
 setInterval(refreshWeeklyPointsStatus, 4000);
 window.addEventListener('focus', refreshWeeklyPointsStatus);
+
+setTermBtn?.addEventListener('click', async () => {
+  const selected = termSelect.value;
+  if (selected === currentTerm) return notify(`${currentTermName} is already selected`);
+  const label = termSelect.options[termSelect.selectedIndex].text;
+  if (!confirm(`Change the current term to ${label}? All leader and public views will switch to that term.`)) return;
+  setTermBtn.disabled = true;
+  try {
+    const data = await apiJson('/api/set-term', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ term: selected })
+    });
+    working = { ...data.working };
+    currentTerm = data.currentTerm;
+    currentTermName = data.currentTermLabel;
+    renderControls();
+    currentTermLabel.textContent = `Current term: ${currentTermName}`;
+    termSelect.value = currentTerm;
+    termStatus.textContent = `Changed ${new Date(data.lastTermChangedAt).toLocaleString('en-GB')} by ${data.lastTermChangedBy}`;
+    updateWeeklyPointsUI(data);
+    publishStatus.textContent = data.publishedAt
+      ? `Last ${currentTermName} public update: ${new Date(data.publishedAt).toLocaleString('en-GB')}`
+      : `No ${currentTermName} totals have been published yet.`;
+    notify(`Current term changed to ${currentTermName}`);
+  } catch (err) {
+    notify(err.message);
+  } finally {
+    setTermBtn.disabled = false;
+  }
+});
 
 logoutBtn.addEventListener('click', logout);
 

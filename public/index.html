@@ -26,13 +26,21 @@
     </div>
     <header class="hero">
       <h1>Buckshaw ROF <span>Cubs Points</span></h1>
-      <div class="subtitle">Six Points Totals</div>
+      <div class="subtitle" id="displaySubtitle">Six Points Totals</div>
+      <div class="score-view-switch" aria-label="Score view">
+        <button id="termViewBtn" class="view-switch-btn active" type="button">Term total</button>
+        <button id="yearViewBtn" class="view-switch-btn" type="button">Year total</button>
+      </div>
     </header>
 
     <main class="board-wrap" aria-live="polite">
       <section class="tubes" id="tubes"></section>
       <div class="footer-quote">“Good Cubs make a brighter tomorrow”</div>
       <div class="status-line" id="status">Loading points…</div>
+      <section class="term-history" aria-labelledby="termHistoryTitle">
+        <h2 id="termHistoryTitle">Points through the year</h2>
+        <div id="termHistoryGrid" class="term-history-grid"></div>
+      </section>
     </main>
   </div>
   <script type="module" src="/display.js"></script>

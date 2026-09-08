@@ -1,5 +1,5 @@
 import { requireUser } from '../lib/auth.mjs';
-import { mutateState, leaderState } from '../lib/state.mjs';
+import { mutateState, leaderState, currentTermData } from '../lib/state.mjs';
 
 export default async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
@@ -8,8 +8,9 @@ export default async (req) => {
 
   try {
     const state = await mutateState((next) => {
-      next.published = { ...next.working };
-      next.publishedAt = new Date().toISOString();
+      const term = currentTermData(next);
+      term.published = { ...term.working };
+      term.publishedAt = new Date().toISOString();
       next.lastPublishedBy = user.username;
     });
     return Response.json(leaderState(state));

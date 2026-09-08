@@ -1283,3 +1283,27 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
   45% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
+
+
+/* v18 term/year tracking */
+.current-term-label { margin-top: 4px; color: var(--gold2); font-size: .82rem; font-weight: 700; }
+.term-admin-box { padding: 18px 0 22px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.term-selector-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-top: 12px; }
+.term-selector-row select { min-height: 48px; }
+.score-view-switch { display: inline-flex; gap: 5px; margin-top: 18px; padding: 5px; border-radius: 999px; background: rgba(17,6,39,.55); border: 1px solid rgba(255,255,255,.12); }
+.view-switch-btn { border: 0; border-radius: 999px; padding: 9px 18px; background: transparent; color: #d9caed; font-family: Georgia, 'Times New Roman', serif; font-size: .98rem; font-weight: 700; cursor: pointer; }
+.view-switch-btn.active { background: linear-gradient(#ffdf78,#c98d25); color: #2b1608; box-shadow: 0 3px 0 #805312; }
+.term-history { width: min(1080px, 95vw); margin: 34px auto 12px; padding: 20px; border-radius: 20px; background: rgba(28,9,58,.6); border: 1px solid rgba(255,255,255,.1); }
+.term-history h2 { margin: 0 0 16px; text-align: center; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.35rem, 3vw, 2rem); }
+.term-history-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.term-history-card { padding: 14px; border-radius: 14px; background: rgba(8,3,24,.42); border: 1px solid rgba(255,255,255,.08); }
+.term-history-card.current { border-color: rgba(255,217,120,.55); box-shadow: inset 0 0 0 1px rgba(255,217,120,.12); }
+.term-history-card h3 { margin: 0 0 11px; color: var(--gold2); font-family: Georgia, 'Times New Roman', serif; font-size: 1.05rem; }
+.history-values { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px 12px; font-size: .9rem; }
+.history-values span { white-space: nowrap; }
+.history-values b { color: var(--six-color); font-weight: 800; }
+.confetti-burst { position: absolute; inset: -35px -45px -30px; pointer-events: none; z-index: 20; overflow: visible; }
+.confetti-burst i { position: absolute; left: 50%; top: 42%; width: 8px; height: 15px; border-radius: 2px; background: var(--piece-color); opacity: 0; transform: translate(-50%,-50%); animation: confetti-fly 2.4s ease-out forwards; animation-delay: calc((var(--i) % 7) * 35ms); }
+.confetti-burst i:nth-child(3n) { width: 5px; height: 18px; border-radius: 50%; }
+@keyframes confetti-fly { 0% { opacity: 1; transform: translate(-50%,-50%) rotate(0deg); } 100% { opacity: 0; transform: translate(calc(-50% + (var(--i) - 17) * 8px), calc(-50% + 160px + (var(--i) % 5) * 12px)) rotate(520deg); } }
+@media (max-width: 700px) { .term-history-grid { grid-template-columns: 1fr; } .term-selector-row { grid-template-columns: 1fr; } .score-view-switch { margin-top: 14px; } }

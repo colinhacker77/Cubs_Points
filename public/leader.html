@@ -39,7 +39,7 @@
 
       <section id="controlPanel" class="hidden">
         <div class="toolbar">
-          <span id="signedInAs"></span>
+          <div><span id="signedInAs"></span><div id="currentTermLabel" class="current-term-label"></div></div>
           <button id="logoutBtn" class="link-btn">Sign out</button>
         </div>
 
@@ -63,6 +63,22 @@
               <h2>User management</h2>
             </div>
           </div>
+
+
+          <section class="term-admin-box">
+            <div class="eyebrow">School year</div>
+            <h3>Current term</h3>
+            <p class="hint">The leader, projector and weekly pages all use the selected term. Previous terms remain stored for the yearly total.</p>
+            <div class="term-selector-row">
+              <select id="termSelect" aria-label="Current term">
+                <option value="autumn">Autumn</option>
+                <option value="spring">Spring</option>
+                <option value="summer">Summer</option>
+              </select>
+              <button id="setTermBtn" class="btn btn-gold" type="button">Set current term</button>
+            </div>
+            <p id="termStatus" class="hint"></p>
+          </section>
 
           <form id="addUserForm" class="admin-form">
             <h3>Add a leader</h3>
@@ -90,9 +106,9 @@
           </div>
 
           <div class="danger-zone">
-            <h3>Reset points</h3>
-            <p class="hint">Sets both the working totals and the public/projector totals to zero immediately.</p>
-            <button id="resetPointsBtn" class="btn btn-danger" type="button">Reset all points to zero</button>
+            <h3>Clear current term</h3>
+            <p class="hint">Clears the selected term only. Previous terms are not affected. Only use this if you really want to erase this term from the yearly total.</p>
+            <button id="resetPointsBtn" class="btn btn-danger" type="button">Clear current term points</button>
           </div>
         </section>
       </section>

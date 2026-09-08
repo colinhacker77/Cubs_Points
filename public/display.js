@@ -7,53 +7,48 @@ const config = {
 
 const tubes = document.getElementById('tubes');
 const status = document.getElementById('status');
+const subtitle = document.getElementById('displaySubtitle');
+const termViewBtn = document.getElementById('termViewBtn');
+const yearViewBtn = document.getElementById('yearViewBtn');
+const historyGrid = document.getElementById('termHistoryGrid');
 let lastPayload = '';
 let pourGeneration = 0;
+let latestData = null;
+let viewMode = 'term';
 
 function marbleSize(value) {
+  if (value > 280) return 7;
+  if (value > 200) return 8;
   if (value > 140) return 9;
   if (value > 100) return 10;
   if (value > 70) return 12;
   if (value > 40) return 15;
   return 20;
 }
-
-function marbleGap(size) {
-  if (size <= 10) return 2;
-  if (size <= 12) return 3;
-  return 4;
-}
+function marbleGap(size) { return size <= 10 ? 2 : size <= 12 ? 3 : 4; }
 
 function makeTube(name, value) {
   const c = config[name];
   const unit = document.createElement('div');
   unit.className = `tube-unit ${name}`;
-
+  unit.dataset.six = name;
   const tube = document.createElement('div');
   tube.className = 'tube';
   tube.setAttribute('aria-label', `${c.label} Six: ${value} points`);
-
   const badge = document.createElement('div');
   badge.className = 'score-badge score-badge-hidden';
   badge.dataset.badge = name;
   badge.innerHTML = `<strong>${value}</strong><small>POINTS</small>`;
-
   const tubeWindow = document.createElement('div');
   tubeWindow.className = 'tube-window';
-
   const marbles = document.createElement('div');
   marbles.className = 'marbles';
   marbles.dataset.six = name;
-  marbles.dataset.value = String(value);
-  marbles.style.setProperty('--marble-size', `${marbleSize(value)}px`);
-
   tubeWindow.append(marbles);
   tube.append(badge, tubeWindow);
-
   const label = document.createElement('div');
   label.className = 'tube-label';
   label.textContent = c.label;
-
   unit.append(tube, label);
   return unit;
 }
@@ -62,23 +57,14 @@ function buildPositions(holder, count, size) {
   const gap = marbleGap(size);
   const width = holder.clientWidth;
   const cols = Math.max(1, Math.floor((width + gap) / (size + gap)));
-  const positions = [];
-
-  for (let i = 0; i < count; i++) {
+  return Array.from({ length: count }, (_, i) => {
     const row = Math.floor(i / cols);
     const rowStart = row * cols;
     const rowCount = Math.min(cols, count - rowStart);
-    const colInRow = i - rowStart;
+    const col = i - rowStart;
     const rowWidth = rowCount * size + (rowCount - 1) * gap;
-    const leftOffset = Math.max(0, Math.floor((width - rowWidth) / 2));
-
-    positions.push({
-      left: leftOffset + colInRow * (size + gap),
-      bottom: row * (size + gap)
-    });
-  }
-
-  return positions;
+    return { left: Math.max(0, Math.floor((width - rowWidth) / 2)) + col * (size + gap), bottom: row * (size + gap) };
+  });
 }
 
 function createMarble(name, index, size, position, holderHeight) {
@@ -88,129 +74,112 @@ function createMarble(name, index, size, position, holderHeight) {
   marble.style.setProperty('--color', c.color);
   marble.style.setProperty('--light', c.light);
   marble.style.setProperty('--dark', c.dark);
-  marble.style.setProperty('--pour-x', `${((index % 5) - 2) * Math.max(3, Math.round(size * 0.35))}px`);
+  marble.style.setProperty('--pour-x', `${((index % 5) - 2) * Math.max(3, Math.round(size * .35))}px`);
   marble.style.setProperty('--drop-height', `${Math.max(holderHeight - position.bottom + 70, 140)}px`);
-  marble.style.width = `${size}px`;
-  marble.style.height = `${size}px`;
-  marble.style.left = `${position.left}px`;
-  marble.style.bottom = `${position.bottom}px`;
+  Object.assign(marble.style, { width: `${size}px`, height: `${size}px`, left: `${position.left}px`, bottom: `${position.bottom}px` });
   return marble;
 }
 
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 function revealBadge(name) {
   const badge = tubes.querySelector(`[data-badge="${name}"]`);
-  if (badge) {
-    badge.classList.remove('score-badge-hidden');
-    badge.classList.add('score-badge-reveal');
-  }
-}
-
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function celebrateWinners(points, generation) {
-  if (generation !== pourGeneration) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  const values = Object.entries(config).map(([name]) => [name, Number(points[name] || 0)]);
-  const high = Math.max(...values.map(([, value]) => value));
-  if (high <= 0) return;
-
-  const winners = values.filter(([, value]) => value === high).map(([name]) => name);
-  for (const name of winners) {
-    const unit = tubes.querySelector(`.tube-unit.${name}`);
-    if (!unit) continue;
-
-    const old = unit.querySelector('.winner-confetti');
-    if (old) old.remove();
-
-    const layer = document.createElement('div');
-    layer.className = 'winner-confetti';
-    layer.setAttribute('aria-hidden', 'true');
-
-    const colours = [config[name].color, '#ffd978', '#ffffff', '#ff8fd8', '#7ee7ff'];
-    for (let i = 0; i < 46; i++) {
-      const piece = document.createElement('i');
-      piece.className = i % 5 === 0 ? 'confetti-piece streamer' : 'confetti-piece';
-      piece.style.setProperty('--confetti-color', colours[i % colours.length]);
-      piece.style.setProperty('--confetti-x', `${(Math.random() * 210 - 105).toFixed(1)}px`);
-      piece.style.setProperty('--confetti-y', `${(Math.random() * 70 + 190).toFixed(1)}px`);
-      piece.style.setProperty('--confetti-rotate', `${Math.round(Math.random() * 720 - 360)}deg`);
-      piece.style.setProperty('--confetti-delay', `${(Math.random() * .35).toFixed(2)}s`);
-      layer.appendChild(piece);
-    }
-
-    unit.appendChild(layer);
-    setTimeout(() => layer.remove(), 3600);
-  }
+  if (badge) { badge.classList.remove('score-badge-hidden'); badge.classList.add('score-badge-reveal'); }
 }
 
 async function pourTube(name, value, generation) {
   const holder = tubes.querySelector(`.marbles[data-six="${name}"]`);
   if (!holder) return;
-
-  const visible = Math.min(value, 180);
-  if (visible <= 0) {
-    revealBadge(name);
-    return;
-  }
-
+  const visible = Math.min(value, 300);
+  if (!visible) { revealBadge(name); return; }
   const size = marbleSize(value);
   const positions = buildPositions(holder, visible, size);
-  const interval = Math.max(28, Math.min(60, 4200 / visible));
+  const interval = Math.max(20, Math.min(55, 3800 / visible));
   const holderHeight = holder.clientHeight;
-
   for (let i = 0; i < visible; i++) {
     if (generation !== pourGeneration || !holder.isConnected) return;
-
-    const marble = createMarble(name, i, size, positions[i], holderHeight);
-    holder.appendChild(marble);
-
-    const jitter = (i % 4) * 4;
-    await wait(interval + jitter);
+    holder.appendChild(createMarble(name, i, size, positions[i], holderHeight));
+    await wait(interval + (i % 4) * 3);
   }
-
-  await wait(950);
-  if (generation !== pourGeneration || !holder.isConnected) return;
-  revealBadge(name);
+  await wait(900);
+  if (generation === pourGeneration) revealBadge(name);
 }
 
-async function render(points) {
+function celebrate(points, generation) {
+  if (generation !== pourGeneration) return;
+  const max = Math.max(...Object.values(points));
+  if (max <= 0) return;
+  for (const [six, value] of Object.entries(points)) {
+    if (value !== max) continue;
+    const unit = tubes.querySelector(`.tube-unit[data-six="${six}"]`);
+    if (!unit) continue;
+    const burst = document.createElement('div');
+    burst.className = 'confetti-burst';
+    for (let i = 0; i < 34; i++) {
+      const piece = document.createElement('i');
+      piece.style.setProperty('--i', i);
+      piece.style.setProperty('--piece-color', [config.red.color, config.yellow.color, config.purple.color, config.blue.color, '#ffd978'][i % 5]);
+      burst.appendChild(piece);
+    }
+    unit.appendChild(burst);
+    setTimeout(() => burst.remove(), viewMode === 'year' ? 5200 : 3600);
+  }
+}
+
+async function animateScores(points) {
   pourGeneration += 1;
   const generation = pourGeneration;
-
-  tubes.replaceChildren(
-    ...Object.keys(config).map((name) => makeTube(name, Number(points[name] || 0)))
-  );
-
-  await new Promise((resolve) => requestAnimationFrame(resolve));
-
+  tubes.replaceChildren(...Object.keys(config).map(name => makeTube(name, Number(points[name] || 0))));
+  await new Promise(resolve => requestAnimationFrame(resolve));
   for (const name of Object.keys(config)) {
     if (generation !== pourGeneration) return;
     await pourTube(name, Number(points[name] || 0), generation);
-    await wait(140);
+    await wait(120);
   }
-
-  if (generation !== pourGeneration) return;
-  await wait(220);
-  celebrateWinners(points, generation);
+  await wait(180);
+  celebrate(points, generation);
 }
+
+function renderHistory(data) {
+  if (!data?.terms) return;
+  const termOrder = ['autumn', 'spring', 'summer'];
+  historyGrid.replaceChildren(...termOrder.map(term => {
+    const item = data.terms[term];
+    const card = document.createElement('article');
+    card.className = `term-history-card${term === data.currentTerm ? ' current' : ''}`;
+    card.innerHTML = `<h3>${item.label}${term === data.currentTerm ? ' · Current' : ''}</h3>
+      <div class="history-values">${Object.entries(config).map(([six, c]) => `<span><b style="--six-color:${c.color}">${c.label}</b> ${Number(item.points[six] || 0)}</span>`).join('')}</div>`;
+    return card;
+  }));
+}
+
+function selectedPoints() {
+  return viewMode === 'year' ? latestData.yearly : latestData.points;
+}
+
+function updateView({ animate = true } = {}) {
+  if (!latestData) return;
+  termViewBtn.classList.toggle('active', viewMode === 'term');
+  yearViewBtn.classList.toggle('active', viewMode === 'year');
+  subtitle.textContent = viewMode === 'term' ? `${latestData.currentTermLabel} Term Totals` : 'Full Year Totals';
+  if (animate) void animateScores(selectedPoints());
+}
+
+termViewBtn.addEventListener('click', () => { if (viewMode !== 'term') { viewMode = 'term'; updateView(); } });
+yearViewBtn.addEventListener('click', () => { if (viewMode !== 'year') { viewMode = 'year'; updateView(); } });
 
 async function load() {
   try {
     const res = await fetch('/api/points', { cache: 'no-store' });
     if (!res.ok) throw new Error('Could not load totals');
     const data = await res.json();
-    const payload = JSON.stringify(data.points);
-    if (payload !== lastPayload) {
-      void render(data.points);
-      lastPayload = payload;
-    }
+    const payload = JSON.stringify(data);
+    latestData = data;
+    renderHistory(data);
+    if (payload !== lastPayload) { updateView(); lastPayload = payload; }
     status.textContent = data.publishedAt
-      ? `Totals updated ${new Date(data.publishedAt).toLocaleString('en-GB')}`
-      : 'Ready for your first meeting totals';
-  } catch (err) {
+      ? `${data.currentTermLabel} totals updated ${new Date(data.publishedAt).toLocaleString('en-GB')}`
+      : `No ${data.currentTermLabel} totals published yet`;
+  } catch {
     status.textContent = 'Unable to load points — retrying…';
   }
 }

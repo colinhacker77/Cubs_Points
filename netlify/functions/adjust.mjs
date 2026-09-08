@@ -1,5 +1,5 @@
 import { requireUser } from '../lib/auth.mjs';
-import { mutateState, SIXES, leaderState } from '../lib/state.mjs';
+import { mutateState, SIXES, leaderState, currentTermData } from '../lib/state.mjs';
 
 export default async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
@@ -10,7 +10,8 @@ export default async (req) => {
     const { six, delta } = await req.json();
     if (!SIXES.includes(six) || ![-1, 1].includes(Number(delta))) return Response.json({ error: 'Invalid adjustment' }, { status: 400 });
     const state = await mutateState((next) => {
-      next.working[six] = Math.max(0, Number(next.working[six] || 0) + Number(delta));
+      const term = currentTermData(next);
+      term.working[six] = Math.max(0, Number(term.working[six] || 0) + Number(delta));
       next.lastChangedBy = user.username;
     });
     return Response.json(leaderState(state));

@@ -84,3 +84,7 @@ Configure local Netlify environment values for `AUTH_SECRET` and `ADMIN_PASSWORD
 - User passwords are stored only as salted scrypt hashes.
 - Removing a user prevents future authenticated requests for that user, even if an old browser still has a token.
 - The screenshot-friendly public page can be shared to the parents' WhatsApp group after publishing the meeting totals.
+
+
+## Term tracking
+The app stores Autumn, Spring and Summer separately. Admin selects the current term in the leader page. Public pages display the selected term, while the projector page can also animate the full-year total. Existing pre-v18 points are migrated into Autumn automatically.

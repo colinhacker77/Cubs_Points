@@ -7,6 +7,7 @@ const SIXES = {
 
 const bars = document.getElementById('weeklyBars');
 const updated = document.getElementById('weeklyUpdated');
+const weeklySubtitle = document.getElementById('weeklySubtitle');
 
 function render(points) {
   const values = Object.entries(SIXES).map(([key, six]) => ({
@@ -43,6 +44,7 @@ async function load() {
     if (!res.ok) throw new Error('Unable to load totals');
     const data = await res.json();
     render(data.points || {});
+    weeklySubtitle.textContent = `${data.currentTermLabel || 'Current'} term totals`; 
 
     if (data.publishedAt) {
       const date = new Date(data.publishedAt);
