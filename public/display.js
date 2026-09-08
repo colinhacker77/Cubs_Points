@@ -35,7 +35,8 @@ function makeTube(name, value) {
     marble.style.setProperty('--color', c.color);
     marble.style.setProperty('--light', c.light);
     marble.style.setProperty('--dark', c.dark);
-    marble.style.setProperty('--drop-delay', `${Math.min(i * 0.045, 3.2)}s`);
+    const pourDelay = Math.min(i * 0.085 + (i % 4) * 0.012, 8.5);
+    marble.style.setProperty('--drop-delay', `${pourDelay}s`);
     marbles.appendChild(marble);
   }
   tubeWindow.append(marbles);

@@ -706,7 +706,7 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
 
 .marble {
   transform: translateY(calc(-1 * min(68vh, 520px))) scale(.92);
-  animation: marble-drop 1.05s cubic-bezier(.21,.9,.27,1.14) forwards;
+  animation: marble-drop 1.12s cubic-bezier(.21,.9,.27,1.14) forwards;
 }
 
 @keyframes marble-drop {
