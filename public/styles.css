@@ -1593,3 +1593,253 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
     font-size: 1.08rem;
   }
 }
+
+
+/* v22 reorganised admin */
+.admin-panel {
+  padding: 22px;
+}
+
+.admin-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.admin-menu-btn {
+  min-height: 64px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 14px;
+  background: rgba(23, 9, 48, .72);
+  color: var(--cream);
+  font: inherit;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.admin-menu-btn.active {
+  border-color: rgba(255,217,120,.7);
+  background: linear-gradient(180deg, rgba(217,154,45,.24), rgba(65,31,92,.82));
+  box-shadow: inset 0 0 0 1px rgba(255,217,120,.12);
+}
+
+.admin-menu-btn:active {
+  transform: translateY(1px);
+}
+
+.admin-menu-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.admin-section {
+  min-width: 0;
+}
+
+.admin-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.admin-section-heading h3 {
+  margin: 2px 0 0;
+  font-size: 1.45rem;
+}
+
+.admin-setting-card {
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  background: rgba(18, 7, 40, .55);
+}
+
+.admin-setting-card h4 {
+  margin: 0 0 8px;
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+}
+
+.admin-setting-status {
+  margin-bottom: 0;
+}
+
+.admin-danger-card {
+  border-color: rgba(255,105,117,.28);
+}
+
+.admin-danger-card h4 {
+  color: #ffb5bb;
+}
+
+.user-management-heading {
+  align-items: center;
+}
+
+.admin-user-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.admin-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 13px;
+  background: rgba(18, 7, 40, .54);
+}
+
+.admin-user-identity {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.admin-user-identity strong {
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-identity span {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.admin-user-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.admin-dialog {
+  width: min(520px, calc(100vw - 28px));
+  border: 1px solid rgba(255,217,120,.28);
+  border-radius: 18px;
+  padding: 0;
+  color: var(--cream);
+  background: linear-gradient(180deg, #32115d, #1f0a42);
+  box-shadow: 0 22px 70px rgba(0,0,0,.55);
+}
+
+.admin-dialog::backdrop {
+  background: rgba(8, 2, 22, .72);
+  backdrop-filter: blur(5px);
+}
+
+.admin-dialog-form {
+  display: grid;
+  gap: 15px;
+  padding: 22px;
+}
+
+.admin-dialog-form label {
+  display: grid;
+  gap: 7px;
+  color: #f7ecff;
+  font-weight: 650;
+}
+
+.admin-dialog-form input,
+.admin-dialog-form select {
+  width: 100%;
+  min-height: 46px;
+}
+
+.dialog-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.dialog-heading h2 {
+  margin: 3px 0 0;
+  font-family: Georgia, serif;
+}
+
+.dialog-close {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  color: var(--cream);
+  font: inherit;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.btn-secondary {
+  color: var(--cream);
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+}
+
+.admin-user-row .btn:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .admin-panel {
+    padding: 16px;
+  }
+
+  .admin-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-menu-btn {
+    justify-content: flex-start;
+    padding: 0 18px;
+    min-height: 56px;
+  }
+
+  .admin-section-heading,
+  .admin-user-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .user-management-heading .btn {
+    width: 100%;
+  }
+
+  .admin-user-actions {
+    width: 100%;
+  }
+
+  .admin-user-actions .btn {
+    flex: 1 1 0;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions .btn {
+    width: 100%;
+  }
+}

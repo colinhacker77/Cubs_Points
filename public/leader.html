@@ -60,79 +60,143 @@
           <div class="admin-heading">
             <div>
               <div class="eyebrow">Administrator</div>
-              <h2>User management</h2>
+              <h2>Admin</h2>
             </div>
           </div>
 
+          <nav class="admin-menu" aria-label="Admin sections">
+            <button id="pointsManagementTab" class="admin-menu-btn active" type="button" data-admin-view="points">
+              <span class="admin-menu-icon" aria-hidden="true">★</span>
+              <span>Points management</span>
+            </button>
+            <button id="userManagementTab" class="admin-menu-btn" type="button" data-admin-view="users">
+              <span class="admin-menu-icon" aria-hidden="true">👤</span>
+              <span>User management</span>
+            </button>
+          </nav>
 
-          <section class="term-admin-box">
-            <div class="eyebrow">School year</div>
-            <h3>Current term</h3>
-            <p class="hint">The leader, projector and weekly pages all use the selected term. Previous terms remain stored for the yearly total.</p>
-            <div class="term-selector-row">
-              <select id="termSelect" aria-label="Current term">
-                <option value="autumn">Autumn</option>
-                <option value="spring">Spring</option>
-                <option value="summer">Summer</option>
-              </select>
-              <button id="setTermBtn" class="btn btn-gold" type="button">Set current term</button>
+          <section id="pointsManagementPanel" class="admin-section">
+            <div class="admin-section-heading">
+              <div>
+                <div class="eyebrow">Points management</div>
+                <h3>Term and reveal settings</h3>
+              </div>
             </div>
-            <p id="termStatus" class="hint"></p>
+
+            <section class="admin-setting-card">
+              <h4>Current term</h4>
+              <p class="hint">The leader, projector and weekly pages all use the selected term. Previous terms remain stored for the yearly total.</p>
+              <div class="term-selector-row">
+                <select id="termSelect" aria-label="Current term">
+                  <option value="autumn">Autumn</option>
+                  <option value="spring">Spring</option>
+                  <option value="summer">Summer</option>
+                </select>
+                <button id="setTermBtn" class="btn btn-gold" type="button">Set current term</button>
+              </div>
+              <p id="termStatus" class="hint admin-setting-status"></p>
+            </section>
+
+            <section class="admin-setting-card">
+              <h4>End of term / year reveal</h4>
+              <p class="hint">Keep the annual winner reveal disabled until the final meeting. Enable it when you want the yearly winner plaque and fireworks after the Year total animation.</p>
+              <div class="final-week-grid">
+                <label>Year label
+                  <input id="annualRevealYear" type="text" maxlength="16" placeholder="2026/27">
+                </label>
+                <label>Winner reveal
+                  <select id="annualRevealSelect">
+                    <option value="off">Disabled</option>
+                    <option value="on">Enabled</option>
+                  </select>
+                </label>
+              </div>
+              <button id="saveAnnualRevealBtn" class="btn btn-gold" type="button">Save reveal settings</button>
+              <p id="annualRevealStatus" class="hint admin-setting-status"></p>
+            </section>
+
+            <section class="admin-setting-card admin-danger-card">
+              <h4>Reset current term</h4>
+              <p class="hint">Clears the selected term only. Previous terms are not affected. This also removes the selected term's points from the annual total.</p>
+              <button id="resetPointsBtn" class="btn btn-danger" type="button">Clear current term points</button>
+            </section>
           </section>
 
-          <section class="final-week-admin-box">
-            <div class="eyebrow">Annual celebration</div>
-            <h3>Final week reveal</h3>
-            <p class="hint">Keep this disabled during the year. Enable it for the final meeting when you want the annual winner plaque and fireworks to appear after the Year total animation.</p>
-            <div class="final-week-grid">
-              <label>Year label
-                <input id="annualRevealYear" type="text" maxlength="16" placeholder="2026/27">
-              </label>
-              <label>Winner reveal
-                <select id="annualRevealSelect">
-                  <option value="off">Disabled</option>
-                  <option value="on">Enabled</option>
-                </select>
-              </label>
+          <section id="userManagementPanel" class="admin-section hidden">
+            <div class="admin-section-heading user-management-heading">
+              <div>
+                <div class="eyebrow">User management</div>
+                <h3>Leader accounts</h3>
+              </div>
+              <button id="openAddUserDialogBtn" class="btn btn-gold" type="button">Add new user</button>
             </div>
-            <button id="saveAnnualRevealBtn" class="btn btn-gold" type="button">Save final week setting</button>
-            <p id="annualRevealStatus" class="hint"></p>
+            <p class="hint">Add, edit or remove leader accounts. The built-in admin account is protected and cannot be deleted or renamed.</p>
+            <div id="userList" class="user-list admin-user-list"></div>
           </section>
-
-          <form id="addUserForm" class="admin-form">
-            <h3>Add a leader</h3>
-            <div class="form-grid">
-              <label>Username
-                <input name="username" autocomplete="off" required minlength="2" maxlength="32">
-              </label>
-              <label>Password
-                <input name="password" type="password" autocomplete="new-password" required minlength="8">
-              </label>
-              <label>Role
-                <select name="role">
-                  <option value="leader">Leader</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </label>
-            </div>
-            <button class="btn btn-gold" type="submit">Add user</button>
-            <p class="hint">Usernames are not case-sensitive. Passwords must be at least 8 characters.</p>
-          </form>
-
-          <div class="user-list-wrap">
-            <h3>Current users</h3>
-            <div id="userList" class="user-list"></div>
-          </div>
-
-          <div class="danger-zone">
-            <h3>Clear current term</h3>
-            <p class="hint">Clears the selected term only. Previous terms are not affected. Only use this if you really want to erase this term from the yearly total.</p>
-            <button id="resetPointsBtn" class="btn btn-danger" type="button">Clear current term points</button>
-          </div>
         </section>
       </section>
     </main>
   </div>
+
+  <dialog id="addUserDialog" class="admin-dialog">
+    <form id="addUserForm" method="dialog" class="admin-dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <div class="eyebrow">User management</div>
+          <h2>Add new user</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="addUserDialog" aria-label="Close">×</button>
+      </div>
+      <label>Username
+        <input name="username" autocomplete="off" required minlength="2" maxlength="32">
+      </label>
+      <label>Password
+        <input name="password" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <label>Role
+        <select name="role">
+          <option value="leader">Leader</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </label>
+      <p class="hint">Usernames are not case-sensitive. Passwords must be at least 8 characters.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-secondary" type="button" data-close-dialog="addUserDialog">Cancel</button>
+        <button class="btn btn-gold" type="submit">Add user</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="editUserDialog" class="admin-dialog">
+    <form id="editUserForm" method="dialog" class="admin-dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <div class="eyebrow">User management</div>
+          <h2>Edit user</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="editUserDialog" aria-label="Close">×</button>
+      </div>
+      <input id="editOriginalUsername" name="originalUsername" type="hidden">
+      <label>Username
+        <input id="editUsername" name="newUsername" autocomplete="off" required minlength="2" maxlength="32">
+      </label>
+      <label>New password
+        <input id="editPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Leave blank to keep current password">
+      </label>
+      <label>Role
+        <select id="editRole" name="role">
+          <option value="leader">Leader</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </label>
+      <p id="editUserHint" class="hint">Leave the password blank if it does not need changing.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-secondary" type="button" data-close-dialog="editUserDialog">Cancel</button>
+        <button class="btn btn-gold" type="submit">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast"></div>
   <script type="module" src="/leader.js"></script>
 </body>

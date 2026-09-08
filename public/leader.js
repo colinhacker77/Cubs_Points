@@ -16,7 +16,20 @@ const signedInAs = document.getElementById('signedInAs');
 const logoutBtn = document.getElementById('logoutBtn');
 const toast = document.getElementById('toast');
 const adminPanel = document.getElementById('adminPanel');
+const pointsManagementTab = document.getElementById('pointsManagementTab');
+const userManagementTab = document.getElementById('userManagementTab');
+const pointsManagementPanel = document.getElementById('pointsManagementPanel');
+const userManagementPanel = document.getElementById('userManagementPanel');
+const openAddUserDialogBtn = document.getElementById('openAddUserDialogBtn');
+const addUserDialog = document.getElementById('addUserDialog');
 const addUserForm = document.getElementById('addUserForm');
+const editUserDialog = document.getElementById('editUserDialog');
+const editUserForm = document.getElementById('editUserForm');
+const editOriginalUsername = document.getElementById('editOriginalUsername');
+const editUsername = document.getElementById('editUsername');
+const editPassword = document.getElementById('editPassword');
+const editRole = document.getElementById('editRole');
+const editUserHint = document.getElementById('editUserHint');
 const userList = document.getElementById('userList');
 const resetPointsBtn = document.getElementById('resetPointsBtn');
 const currentTermLabel = document.getElementById('currentTermLabel');
@@ -142,6 +155,7 @@ function showControls() {
   controlPanel.classList.remove('hidden');
   signedInAs.textContent = `Signed in as ${username}${role === 'admin' ? ' · Admin' : ''}`;
   adminPanel.classList.toggle('hidden', role !== 'admin');
+  if (role === 'admin') setAdminView('points');
 }
 
 function showLogin() {
@@ -348,37 +362,69 @@ publishBtn.addEventListener('click', async () => {
   }
 });
 
-function userCard(user) {
-  const card = document.createElement('form');
-  card.className = 'user-card';
-  card.dataset.username = user.username;
+function setAdminView(view) {
+  const showPoints = view === 'points';
+  pointsManagementPanel.classList.toggle('hidden', !showPoints);
+  userManagementPanel.classList.toggle('hidden', showPoints);
+  pointsManagementTab.classList.toggle('active', showPoints);
+  userManagementTab.classList.toggle('active', !showPoints);
+  pointsManagementTab.setAttribute('aria-current', showPoints ? 'page' : 'false');
+  userManagementTab.setAttribute('aria-current', showPoints ? 'false' : 'page');
+}
+
+pointsManagementTab?.addEventListener('click', () => setAdminView('points'));
+userManagementTab?.addEventListener('click', () => setAdminView('users'));
+
+function openDialog(dialog) {
+  if (!dialog) return;
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+}
+
+function closeDialog(dialog) {
+  if (!dialog) return;
+  if (typeof dialog.close === 'function') dialog.close();
+  else dialog.removeAttribute('open');
+}
+
+document.querySelectorAll('[data-close-dialog]').forEach((button) => {
+  button.addEventListener('click', () => closeDialog(document.getElementById(button.dataset.closeDialog)));
+});
+
+[addUserDialog, editUserDialog].forEach((dialog) => {
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) closeDialog(dialog);
+  });
+});
+
+openAddUserDialogBtn?.addEventListener('click', () => {
+  addUserForm.reset();
+  openDialog(addUserDialog);
+  requestAnimationFrame(() => addUserForm.elements.username?.focus());
+});
+
+function userRow(user) {
+  const row = document.createElement('div');
+  row.className = 'admin-user-row';
+  row.dataset.username = user.username;
+  row.dataset.role = user.role;
   const locked = user.username === 'admin';
-  card.innerHTML = `
-    <div class="user-card-title"><strong>${user.username}</strong><span>${user.role === 'admin' ? 'Administrator' : 'Leader'}</span></div>
-    <div class="user-edit-grid">
-      <label>Username
-        <input name="newUsername" value="${user.username}" ${locked ? 'disabled' : ''}>
-      </label>
-      <label>Role
-        <select name="role" ${locked ? 'disabled' : ''}>
-          <option value="leader" ${user.role === 'leader' ? 'selected' : ''}>Leader</option>
-          <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrator</option>
-        </select>
-      </label>
-      <label class="password-field">New password <span>(leave blank to keep current)</span>
-        <input name="password" type="password" autocomplete="new-password" minlength="8">
-      </label>
+
+  row.innerHTML = `
+    <div class="admin-user-identity">
+      <strong>${user.username}</strong>
+      <span>${user.role === 'admin' ? 'Administrator' : 'Leader'}${locked ? ' · Protected' : ''}</span>
     </div>
-    <div class="user-actions">
-      <button class="btn btn-small btn-gold" type="submit">Save changes</button>
-      ${locked ? '<span class="protected-user">Protected account</span>' : '<button class="btn btn-small btn-outline-danger delete-user" type="button">Remove user</button>'}
+    <div class="admin-user-actions">
+      <button class="btn btn-small btn-gold edit-user" type="button">Edit</button>
+      <button class="btn btn-small btn-outline-danger delete-user" type="button" ${locked ? 'disabled title="The built-in admin account cannot be deleted"' : ''}>Delete</button>
     </div>`;
-  return card;
+  return row;
 }
 
 async function loadUsers() {
   const data = await apiJson('/api/users', { headers: authHeaders(), cache: 'no-store' });
-  userList.replaceChildren(...data.users.map(userCard));
+  userList.replaceChildren(...data.users.map(userRow));
 }
 
 addUserForm.addEventListener('submit', async (event) => {
@@ -386,12 +432,19 @@ addUserForm.addEventListener('submit', async (event) => {
   const form = new FormData(addUserForm);
   const button = addUserForm.querySelector('button[type="submit"]');
   button.disabled = true;
+
   try {
     await apiJson('/api/users', {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ action: 'create', username: form.get('username'), password: form.get('password'), role: form.get('role') })
+      body: JSON.stringify({
+        action: 'create',
+        username: form.get('username'),
+        password: form.get('password'),
+        role: form.get('role')
+      })
     });
+    closeDialog(addUserDialog);
     addUserForm.reset();
     await loadUsers();
     notify('User added');
@@ -402,41 +455,34 @@ addUserForm.addEventListener('submit', async (event) => {
   }
 });
 
-userList.addEventListener('submit', async (event) => {
-  const card = event.target.closest('.user-card');
-  if (!card) return;
-  event.preventDefault();
-  const form = new FormData(card);
-  const button = card.querySelector('button[type="submit"]');
-  button.disabled = true;
-  try {
-    await apiJson('/api/users', {
-      method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({
-        action: 'update',
-        username: card.dataset.username,
-        newUsername: form.get('newUsername') || card.dataset.username,
-        role: form.get('role') || undefined,
-        password: form.get('password') || undefined
-      })
-    });
-    await loadUsers();
-    notify('User updated');
-  } catch (err) {
-    notify(err.message);
-  } finally {
-    button.disabled = false;
-  }
-});
-
 userList.addEventListener('click', async (event) => {
-  const button = event.target.closest('.delete-user');
-  if (!button) return;
-  const card = button.closest('.user-card');
-  const usernameToDelete = card.dataset.username;
-  if (!confirm(`Remove ${usernameToDelete}? They will no longer be able to sign in.`)) return;
-  button.disabled = true;
+  const row = event.target.closest('.admin-user-row');
+  if (!row) return;
+
+  const editButton = event.target.closest('.edit-user');
+  if (editButton) {
+    const locked = row.dataset.username === 'admin';
+    editOriginalUsername.value = row.dataset.username;
+    editUsername.value = row.dataset.username;
+    editUsername.disabled = locked;
+    editRole.value = row.dataset.role;
+    editRole.disabled = locked;
+    editPassword.value = '';
+    editUserHint.textContent = locked
+      ? 'The built-in admin username and role are protected. You can change its password.'
+      : 'Leave the password blank if it does not need changing.';
+    openDialog(editUserDialog);
+    requestAnimationFrame(() => (locked ? editPassword : editUsername).focus());
+    return;
+  }
+
+  const deleteButton = event.target.closest('.delete-user');
+  if (!deleteButton || deleteButton.disabled) return;
+
+  const usernameToDelete = row.dataset.username;
+  if (!confirm(`Delete ${usernameToDelete}? They will immediately lose access to the leader page.`)) return;
+
+  deleteButton.disabled = true;
   try {
     await apiJson('/api/users', {
       method: 'POST',
@@ -444,9 +490,40 @@ userList.addEventListener('click', async (event) => {
       body: JSON.stringify({ action: 'delete', username: usernameToDelete })
     });
     await loadUsers();
-    notify('User removed');
+    notify('User deleted');
   } catch (err) {
     notify(err.message);
+    deleteButton.disabled = false;
+  }
+});
+
+editUserForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = new FormData(editUserForm);
+  const originalUsername = form.get('originalUsername');
+  const locked = originalUsername === 'admin';
+  const button = editUserForm.querySelector('button[type="submit"]');
+  button.disabled = true;
+
+  try {
+    await apiJson('/api/users', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        action: 'update',
+        username: originalUsername,
+        newUsername: locked ? originalUsername : form.get('newUsername'),
+        role: locked ? 'admin' : form.get('role'),
+        password: form.get('password') || undefined
+      })
+    });
+    closeDialog(editUserDialog);
+    editUserForm.reset();
+    await loadUsers();
+    notify('User updated');
+  } catch (err) {
+    notify(err.message);
+  } finally {
     button.disabled = false;
   }
 });
