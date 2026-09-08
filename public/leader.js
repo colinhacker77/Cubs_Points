@@ -281,20 +281,31 @@ weeklyPointsBtn.addEventListener('click', async () => {
   if (!confirm('Add 10 points to every Six? This can only be done once today.')) return;
 
   weeklyPointsBtn.disabled = true;
-  weeklyPointsBtn.textContent = 'Adding…';
+  weeklyPointsBtn.textContent = 'Adding 10 points…';
+
   try {
     const data = await apiJson('/api/add-weekly-points', {
       method: 'POST',
-      headers: authHeaders()
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({})
     });
-    working = data.working;
-    syncWorkingValues();
+
+    working = { ...data.working };
+    renderControls();
+
+    leaderControls.querySelectorAll('.points-value').forEach((el) => {
+      el.classList.add('points-bump');
+      setTimeout(() => el.classList.remove('points-bump'), 550);
+    });
+
     updateWeeklyPointsUI(data);
     notify('10 points added to every Six');
   } catch (err) {
     notify(err.message);
     try {
       const state = await apiJson('/api/leader-state', { headers: authHeaders(), cache: 'no-store' });
+      working = { ...state.working };
+      renderControls();
       updateWeeklyPointsUI(state);
     } catch {
       weeklyPointsBtn.disabled = false;

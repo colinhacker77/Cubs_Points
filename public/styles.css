@@ -1265,3 +1265,21 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
 @media (prefers-reduced-motion: reduce) {
   .winner-confetti { display: none; }
 }
+
+
+/* v17 weekly points button polish */
+.weekly-points-box .btn {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.points-bump {
+  animation: points-bump .5s ease-out;
+}
+
+@keyframes points-bump {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
