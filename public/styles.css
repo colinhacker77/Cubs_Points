@@ -857,3 +857,46 @@ select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(230,184,75,
     font-size: .8rem;
   }
 }
+
+
+/* v10 theatrical pour */
+.marbles {
+  justify-content: center;
+}
+
+.marble {
+  transform: translateX(var(--pour-x, 0px)) translateY(calc(-1 * min(82vh, 620px))) scale(.88);
+  animation: marble-pour 1.35s cubic-bezier(.19,.92,.24,1.14) forwards;
+  transform-origin: center center;
+}
+
+@keyframes marble-pour {
+  0% {
+    opacity: 0;
+    transform: translateX(var(--pour-x, 0px)) translateY(calc(-1 * min(82vh, 620px))) scale(.88);
+  }
+  12% {
+    opacity: 1;
+  }
+  58% {
+    transform: translateX(calc(var(--pour-x, 0px) * .35)) translateY(20px) scale(1.04);
+  }
+  74% {
+    transform: translateX(calc(var(--pour-x, 0px) * .15)) translateY(-9px) scale(.99);
+  }
+  88% {
+    transform: translateX(calc(var(--pour-x, 0px) * .08)) translateY(4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marble {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
