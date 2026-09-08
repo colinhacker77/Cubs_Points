@@ -80,6 +80,25 @@
             <p id="termStatus" class="hint"></p>
           </section>
 
+          <section class="final-week-admin-box">
+            <div class="eyebrow">Annual celebration</div>
+            <h3>Final week reveal</h3>
+            <p class="hint">Keep this disabled during the year. Enable it for the final meeting when you want the annual winner plaque and fireworks to appear after the Year total animation.</p>
+            <div class="final-week-grid">
+              <label>Year label
+                <input id="annualRevealYear" type="text" maxlength="16" placeholder="2026/27">
+              </label>
+              <label>Winner reveal
+                <select id="annualRevealSelect">
+                  <option value="off">Disabled</option>
+                  <option value="on">Enabled</option>
+                </select>
+              </label>
+            </div>
+            <button id="saveAnnualRevealBtn" class="btn btn-gold" type="button">Save final week setting</button>
+            <p id="annualRevealStatus" class="hint"></p>
+          </section>
+
           <form id="addUserForm" class="admin-form">
             <h3>Add a leader</h3>
             <div class="form-grid">

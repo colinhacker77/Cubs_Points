@@ -54,6 +54,12 @@
   to = "/.netlify/functions/set-term"
   status = 200
 
+
+[[redirects]]
+  from = "/api/set-final-week"
+  to = "/.netlify/functions/set-final-week"
+  status = 200
+
 [[headers]]
   for = "/leader.html"
   [headers.values]

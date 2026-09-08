@@ -15,6 +15,7 @@ const termViewBtn = document.getElementById('termViewBtn');
 const yearViewBtn = document.getElementById('yearViewBtn');
 const historyGrid = document.getElementById('termHistoryGrid');
 const pageShell = document.querySelector('.page-shell');
+const boardWrap = document.querySelector('.board-wrap');
 
 let lastPayload = '';
 let pourGeneration = 0;
@@ -221,7 +222,7 @@ function showYearWinner(points, generation) {
   if (max <= 0) return;
 
   const winners = Object.entries(points).filter(([, value]) => value === max).map(([six]) => config[six].label);
-  const year = new Date().getFullYear();
+  const year = latestData?.annualRevealYear || String(new Date().getFullYear());
   const winnerText = winners.length === 1
     ? `The six with the most points for ${year} is ${winners[0]} with ${max} points`
     : `The sixes with the most points for ${year} are ${winners.join(' and ')} with ${max} points`;
@@ -231,7 +232,7 @@ function showYearWinner(points, generation) {
   overlay.innerHTML = `
     <div class="year-fireworks">${fireworksMarkup()}</div>
     <div class="year-winner-plaque">${winnerText}</div>`;
-  pageShell.appendChild(overlay);
+  boardWrap.appendChild(overlay);
   yearOverlay = overlay;
 }
 
@@ -253,7 +254,7 @@ async function animateScores(points) {
 
   await wait(180);
   if (viewMode === 'year') {
-    showYearWinner(points, generation);
+    if (latestData?.annualRevealEnabled) showYearWinner(points, generation);
   } else {
     startWinnerConfetti(points, generation);
   }

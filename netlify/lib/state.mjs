@@ -22,7 +22,7 @@ function blankTerm() {
 }
 
 export const initialState = () => ({
-  version: 2,
+  version: 3,
   currentTerm: 'autumn',
   terms: {
     autumn: blankTerm(),
@@ -35,7 +35,11 @@ export const initialState = () => ({
   lastResetBy: null,
   lastResetAt: null,
   lastTermChangedBy: null,
-  lastTermChangedAt: null
+  lastTermChangedAt: null,
+  annualRevealEnabled: false,
+  annualRevealYear: String(new Date().getFullYear()),
+  annualRevealChangedBy: null,
+  annualRevealChangedAt: null
 });
 
 function cleanPoints(points = {}) {
@@ -79,7 +83,7 @@ function normaliseState(existing) {
   return {
     ...initialState(),
     ...existing,
-    version: 2,
+    version: 3,
     currentTerm,
     terms: Object.fromEntries(TERMS.map((term) => [term, normaliseTerm(existing.terms?.[term])]))
   };
@@ -89,7 +93,7 @@ export async function getState() {
   const s = getPersistentStore(STORE_NAME);
   const existing = await s.get(STATE_KEY, { type: 'json' });
   const state = normaliseState(existing);
-  if (!existing || !existing.terms || existing.version !== 2) {
+  if (!existing || !existing.terms || existing.version !== 3) {
     await s.setJSON(STATE_KEY, state);
   }
   return state;
@@ -133,7 +137,9 @@ export function publicState(state) {
     currentTerm: state.currentTerm,
     currentTermLabel: TERM_LABELS[state.currentTerm],
     terms: termSummary(state),
-    yearly: yearlyPublished(state)
+    yearly: yearlyPublished(state),
+    annualRevealEnabled: Boolean(state.annualRevealEnabled),
+    annualRevealYear: state.annualRevealYear || String(new Date().getFullYear())
   };
 }
 
@@ -156,6 +162,10 @@ export function leaderState(state) {
     lastWeeklyPointsBy: current.lastWeeklyPointsBy,
     lastWeeklyPointsDay: current.lastWeeklyPointsDay,
     lastTermChangedBy: state.lastTermChangedBy,
-    lastTermChangedAt: state.lastTermChangedAt
+    lastTermChangedAt: state.lastTermChangedAt,
+    annualRevealEnabled: Boolean(state.annualRevealEnabled),
+    annualRevealYear: state.annualRevealYear || String(new Date().getFullYear()),
+    annualRevealChangedBy: state.annualRevealChangedBy,
+    annualRevealChangedAt: state.annualRevealChangedAt
   };
 }

@@ -25,6 +25,10 @@ const setTermBtn = document.getElementById('setTermBtn');
 const termStatus = document.getElementById('termStatus');
 const weeklyPointsBtn = document.getElementById('weeklyPointsBtn');
 const weeklyPointsStatus = document.getElementById('weeklyPointsStatus');
+const annualRevealYear = document.getElementById('annualRevealYear');
+const annualRevealSelect = document.getElementById('annualRevealSelect');
+const saveAnnualRevealBtn = document.getElementById('saveAnnualRevealBtn');
+const annualRevealStatus = document.getElementById('annualRevealStatus');
 
 let token = sessionStorage.getItem('cubLeaderToken') || '';
 let username = sessionStorage.getItem('cubLeaderUser') || '';
@@ -181,6 +185,9 @@ async function loadState() {
   currentTermLabel.textContent = `Current term: ${currentTermName}`;
   if (termSelect) termSelect.value = currentTerm;
   if (termStatus) termStatus.textContent = data.lastTermChangedAt ? `Last changed ${new Date(data.lastTermChangedAt).toLocaleString('en-GB')} by ${data.lastTermChangedBy || 'admin'}` : '';
+  if (annualRevealYear) annualRevealYear.value = data.annualRevealYear || String(new Date().getFullYear());
+  if (annualRevealSelect) annualRevealSelect.value = data.annualRevealEnabled ? 'on' : 'off';
+  if (annualRevealStatus) annualRevealStatus.textContent = data.annualRevealChangedAt ? `Last changed ${new Date(data.annualRevealChangedAt).toLocaleString('en-GB')} by ${data.annualRevealChangedBy || 'admin'}` : 'Annual winner reveal is currently disabled.';
   updateWeeklyPointsUI(data);
   publishStatus.textContent = data.publishedAt
     ? `Last public update: ${new Date(data.publishedAt).toLocaleString('en-GB')}`
@@ -502,6 +509,28 @@ setTermBtn?.addEventListener('click', async () => {
     notify(err.message);
   } finally {
     setTermBtn.disabled = false;
+  }
+});
+
+saveAnnualRevealBtn?.addEventListener('click', async () => {
+  const enabled = annualRevealSelect.value === 'on';
+  const year = annualRevealYear.value.trim();
+  if (!year) return notify('Enter a year label');
+  saveAnnualRevealBtn.disabled = true;
+  try {
+    const data = await apiJson('/api/set-final-week', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ enabled, year })
+    });
+    annualRevealYear.value = data.annualRevealYear;
+    annualRevealSelect.value = data.annualRevealEnabled ? 'on' : 'off';
+    annualRevealStatus.textContent = `${data.annualRevealEnabled ? 'Enabled' : 'Disabled'} ${new Date(data.annualRevealChangedAt).toLocaleString('en-GB')} by ${data.annualRevealChangedBy}`;
+    notify(data.annualRevealEnabled ? 'Final week winner reveal enabled' : 'Final week winner reveal disabled');
+  } catch (err) {
+    notify(err.message);
+  } finally {
+    saveAnnualRevealBtn.disabled = false;
   }
 });
 
