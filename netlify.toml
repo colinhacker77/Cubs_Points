@@ -22,6 +22,12 @@
   to = "/.netlify/functions/adjust"
   status = 200
 
+
+[[redirects]]
+  from = "/api/set-total"
+  to = "/.netlify/functions/set-total"
+  status = 200
+
 [[redirects]]
   from = "/api/publish"
   to = "/.netlify/functions/publish"

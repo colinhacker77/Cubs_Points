@@ -44,10 +44,55 @@ function renderControls() {
     row.innerHTML = `
       <div class="six-name">${six.label}<small>points</small></div>
       <button class="adjust-btn" data-six="${key}" data-delta="-1" aria-label="Remove one point from ${six.label}">−</button>
-      <div class="points-value" data-value="${key}">${working[key]}</div>
+      <div class="points-cell">
+        <button class="points-value points-trigger" type="button" data-value="${key}" data-edit="${key}" aria-label="Set ${six.label} points total">${working[key]}</button>
+        <form class="manual-entry hidden" data-entry="${key}">
+          <input class="manual-input" name="total" type="number" min="0" step="1" inputmode="numeric" pattern="[0-9]*" value="${working[key]}" aria-label="New ${six.label} points total">
+          <button class="manual-action manual-save" type="submit" aria-label="Save ${six.label} points total">✓</button>
+          <button class="manual-action manual-cancel" type="button" aria-label="Cancel editing ${six.label} points total">✕</button>
+        </form>
+      </div>
       <button class="adjust-btn" data-six="${key}" data-delta="1" aria-label="Add one point to ${six.label}">+</button>`;
     return row;
   }));
+}
+
+function syncWorkingValues() {
+  for (const [key, value] of Object.entries(working)) {
+    const display = document.querySelector(`[data-value="${key}"]`);
+    if (display) display.textContent = value;
+    const input = document.querySelector(`.manual-entry[data-entry="${key}"] .manual-input`);
+    if (input && document.activeElement !== input) input.value = value;
+  }
+}
+
+function closeManualEntry(six) {
+  const entry = leaderControls.querySelector(`.manual-entry[data-entry="${six}"]`);
+  const trigger = leaderControls.querySelector(`.points-trigger[data-edit="${six}"]`);
+  if (entry) entry.classList.add('hidden');
+  if (trigger) trigger.classList.remove('hidden');
+}
+
+function closeAllManualEntries() {
+  leaderControls.querySelectorAll('.manual-entry').forEach((entry) => {
+    entry.classList.add('hidden');
+  });
+  leaderControls.querySelectorAll('.points-trigger').forEach((trigger) => {
+    trigger.classList.remove('hidden');
+  });
+}
+
+function openManualEntry(six) {
+  closeAllManualEntries();
+  const entry = leaderControls.querySelector(`.manual-entry[data-entry="${six}"]`);
+  const trigger = leaderControls.querySelector(`.points-trigger[data-edit="${six}"]`);
+  if (!entry || !trigger) return;
+  trigger.classList.add('hidden');
+  entry.classList.remove('hidden');
+  const input = entry.querySelector('.manual-input');
+  input.value = working[six] ?? 0;
+  input.focus();
+  input.select();
 }
 
 function showControls() {
@@ -125,26 +170,77 @@ loginForm.addEventListener('submit', async (event) => {
 
 leaderControls.addEventListener('click', async (event) => {
   const button = event.target.closest('.adjust-btn');
-  if (!button) return;
-  button.disabled = true;
-  const six = button.dataset.six;
-  const delta = Number(button.dataset.delta);
+  if (button) {
+    button.disabled = true;
+    const six = button.dataset.six;
+    const delta = Number(button.dataset.delta);
+    try {
+      const data = await apiJson('/api/adjust', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ six, delta })
+      });
+      working = data.working;
+      syncWorkingValues();
+    } catch (err) {
+      notify(err.message);
+    } finally {
+      button.disabled = false;
+    }
+    return;
+  }
+
+  const trigger = event.target.closest('.points-trigger');
+  if (trigger) {
+    openManualEntry(trigger.dataset.edit);
+    return;
+  }
+
+  const cancel = event.target.closest('.manual-cancel');
+  if (cancel) {
+    const form = cancel.closest('.manual-entry');
+    if (form) closeManualEntry(form.dataset.entry);
+  }
+});
+
+leaderControls.addEventListener('submit', async (event) => {
+  const form = event.target.closest('.manual-entry');
+  if (!form) return;
+  event.preventDefault();
+  const six = form.dataset.entry;
+  const input = form.querySelector('.manual-input');
+  const buttons = form.querySelectorAll('button');
+  const value = Number(input.value);
+
+  if (!Number.isInteger(value) || value < 0) {
+    notify('Enter a whole number of 0 or more');
+    input.focus();
+    input.select();
+    return;
+  }
+
+  input.disabled = true;
+  buttons.forEach((button) => button.disabled = true);
   try {
-    const data = await apiJson('/api/adjust', {
+    const data = await apiJson('/api/set-total', {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ six, delta })
+      body: JSON.stringify({ six, value })
     });
     working = data.working;
-    for (const [key, value] of Object.entries(working)) {
-      const el = document.querySelector(`[data-value="${key}"]`);
-      if (el) el.textContent = value;
-    }
+    syncWorkingValues();
+    closeManualEntry(six);
+    notify(`${SIXES[six].label} total updated`);
   } catch (err) {
     notify(err.message);
-  } finally {
-    button.disabled = false;
+    input.disabled = false;
+    buttons.forEach((button) => button.disabled = false);
+    input.focus();
+    input.select();
+    return;
   }
+  input.disabled = false;
+  buttons.forEach((button) => button.disabled = false);
 });
 
 publishBtn.addEventListener('click', async () => {

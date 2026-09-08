@@ -32,7 +32,7 @@ function makeTube(name, value) {
     marble.style.setProperty('--color', c.color);
     marble.style.setProperty('--light', c.light);
     marble.style.setProperty('--dark', c.dark);
-    marble.style.setProperty('--drop-delay', `${Math.min(i * 0.025, 1.6)}s`);
+    marble.style.setProperty('--drop-delay', `${Math.min(i * 0.03, 2.4)}s`);
     marbles.appendChild(marble);
   }
   tube.append(badge, marbles);
