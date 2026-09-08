@@ -6,7 +6,6 @@ const config = {
 };
 
 const DISPLAY_ORDER = ['red', 'yellow', 'purple', 'blue'];
-const YEAR_REVEAL_ORDER = [...DISPLAY_ORDER].reverse();
 
 const tubes = document.getElementById('tubes');
 const status = document.getElementById('status');
@@ -245,7 +244,12 @@ async function animateScores(points) {
   tubes.replaceChildren(...DISPLAY_ORDER.map((name) => makeTube(name, Number(points[name] || 0))));
   await new Promise((resolve) => requestAnimationFrame(resolve));
 
-  const revealOrder = viewMode === 'year' ? YEAR_REVEAL_ORDER : DISPLAY_ORDER;
+  const revealOrder = viewMode === 'year'
+    ? [...DISPLAY_ORDER].sort((a, b) => {
+        const diff = Number(points[a] || 0) - Number(points[b] || 0);
+        return diff || DISPLAY_ORDER.indexOf(a) - DISPLAY_ORDER.indexOf(b);
+      })
+    : DISPLAY_ORDER;
   for (const name of revealOrder) {
     if (generation !== pourGeneration) return;
     await pourTube(name, Number(points[name] || 0), generation);
